@@ -1,0 +1,113 @@
+/* =========================================================
+   SmartApply — variables.css
+   Single source of truth for design tokens. Load this FIRST,
+   before auth.css / app_shell.css / home.css / any feature css.
+
+   NOTE: auth.css was written expecting a "home.css" that already
+   defined these tokens. If your project already has that file,
+   do NOT load both — pick one source of truth and delete the
+   duplicate to avoid two different purple values fighting each
+   other in the cascade.
+   ========================================================= */
+
+:root {
+  /* Brand palette */
+  --purple-400: #a78bfa;
+  --purple-600: #6c4ce0;
+  --purple-700: #5636b8;
+  --blue-400: #60a5fa;
+  --blue-600: #3b6fe0;
+
+  --gradient-brand: linear-gradient(135deg, var(--purple-600) 0%, var(--blue-400) 100%);
+  --gradient-brand-soft: linear-gradient(135deg, rgba(108, 76, 224, 0.12) 0%, rgba(96, 165, 250, 0.12) 100%);
+
+  /* Surfaces / glassmorphism */
+  --surface-strong: rgba(255, 255, 255, 0.65);
+  --surface-soft: rgba(255, 255, 255, 0.4);
+  --border-glass: rgba(255, 255, 255, 0.35);
+  --bg-app: #f3f1ff;
+
+  /* Ink (text) */
+  --ink: #1f1b3a;
+  --ink-soft: #55506f;
+  --ink-faint: #948fb0;
+  --white: #ffffff;
+
+  /* Shadows */
+  --shadow-glow: 0 20px 60px rgba(108, 76, 224, 0.18);
+  --shadow-sm: 0 6px 18px rgba(31, 27, 58, 0.08);
+  --shadow-md: 0 12px 32px rgba(31, 27, 58, 0.12);
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  /* Typography */
+  --font-display: 'Poppins', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+
+  /* Motion */
+  --transition: 0.2s ease;
+
+  /* Layout */
+  --sidebar-width: 264px;
+  --sidebar-width-collapsed: 84px;
+  --navbar-height: 72px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(108, 76, 224, 0.14), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(96, 165, 250, 0.14), transparent 45%),
+    var(--bg-app);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  margin: 0;
+  color: var(--ink);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--gradient-brand);
+  color: var(--white);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

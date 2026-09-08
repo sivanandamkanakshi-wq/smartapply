@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Profile — SmartApply</title>
+<meta name="theme-color" content="#6C63FF" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<style>
+  :root{
+    --primary:#6C63FF;
+    --secondary:#8B5CF6;
+    --accent:#4F46E5;
+    --bg:#F6F8FF;
+    --card:#FFFFFF;
+    --text:#111827;
+    --text-soft:#5B6178;
+    --text-faint:#9AA0B4;
+    --border:#E5E7EB;
+    --danger:#E5484D;
+    --success:#16A34A;
+    --gradient-brand:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+    --gradient-soft:linear-gradient(135deg,rgba(108,99,255,.12) 0%,rgba(79,70,229,.08) 100%);
+    --radius-card:24px;
+    --radius-field:16px;
+    --radius-pill:999px;
+    --shadow-card:0 20px 50px -12px rgba(76,45,168,.14);
+    --shadow-card-hover:0 28px 64px -12px rgba(76,45,168,.22);
+    --shadow-btn:0 14px 34px -8px rgba(108,99,255,.55);
+    --font:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  h1,h2,h3{font-family:var(--font);color:var(--text);font-weight:700;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+  /* ---------- Ambient background ---------- */
+  .bg-mesh{position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(ellipse 900px 600px at 8% -5%, rgba(108,99,255,.14), transparent 60%),
+    radial-gradient(ellipse 800px 700px at 100% 10%, rgba(139,92,246,.12), transparent 55%),
+    radial-gradient(ellipse 700px 600px at 20% 100%, rgba(79,70,229,.09), transparent 55%),
+    var(--bg);}
+  .blob{position:fixed;border-radius:50%;filter:blur(80px);z-index:-1;opacity:.5;animation:float 22s ease-in-out infinite;}
+  .blob-1{width:420px;height:420px;background:linear-gradient(135deg,var(--primary),var(--secondary));top:-120px;right:-100px;animation-delay:0s;}
+  .blob-2{width:360px;height:360px;background:linear-gradient(135deg,var(--secondary),var(--accent));bottom:-140px;left:-120px;animation-delay:-8s;}
+  .blob-3{width:260px;height:260px;background:linear-gradient(135deg,var(--accent),var(--primary));top:45%;right:8%;opacity:.25;animation-delay:-14s;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-24px,30px) scale(1.06);}}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px clamp(18px,4vw,40px);position:sticky;top:0;z-index:40;
+    background:rgba(246,248,255,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(229,231,235,.7);
+  }
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem;letter-spacing:-.01em;}
+  .logo-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--gradient-brand);box-shadow:0 6px 16px -4px rgba(108,99,255,.6);color:#fff;}
+  .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;color:var(--primary);padding:9px 18px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,99,255,.25);background:#fff;transition:background .2s,transform .2s;}
+  .btn-back:hover{background:var(--gradient-soft);transform:translateY(-1px);}
+
+  /* ---------- App shell: sidebar + main ---------- */
+  .app-shell{display:grid;grid-template-columns:296px 1fr;gap:28px;max-width:1400px;margin:0 auto;padding:28px clamp(16px,3vw,36px) 140px;align-items:flex-start;}
+
+  /* ---------- Sidebar nav ---------- */
+  .sidenav{
+    position:sticky;top:88px;max-height:calc(100vh - 108px);overflow-y:auto;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(229,231,235,.8);border-radius:var(--radius-card);padding:22px 16px;
+    scrollbar-width:thin;scrollbar-color:rgba(108,99,255,.35) transparent;
+  }
+  .sidenav::-webkit-scrollbar{width:5px;}
+  .sidenav::-webkit-scrollbar-thumb{background:rgba(108,99,255,.3);border-radius:10px;}
+  .sidenav-title{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);padding:4px 10px 14px;}
+  .nav-list{list-style:none;position:relative;}
+  .nav-list::before{content:"";position:absolute;left:26px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,rgba(108,99,255,.18),rgba(108,99,255,.03));}
+  .nav-item{position:relative;}
+  .nav-link{
+    position:relative;display:flex;align-items:center;gap:12px;padding:9px 10px 9px 6px;border-radius:14px;
+    color:var(--text-soft);transition:background .2s,color .2s,transform .2s;
+  }
+  .nav-link:hover{background:rgba(108,99,255,.07);color:var(--text);}
+  .nav-num{position:relative;flex-shrink:0;width:34px;height:34px;border-radius:11px;background:#fff;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-faint);transition:all .25s;z-index:1;}
+  .nav-num svg{width:16px;height:16px;}
+  .nav-text{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .nav-text .t{font-size:.82rem;font-weight:600;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nav-text .d{font-size:.7rem;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nav-item.active .nav-link{background:var(--gradient-soft);color:var(--accent);}
+  .nav-item.active .nav-num{background:var(--gradient-brand);border-color:transparent;color:#fff;box-shadow:0 6px 14px -4px rgba(108,99,255,.6);}
+  .nav-item.active .nav-text .t{color:var(--accent);}
+  .nav-dot{position:absolute;left:-6px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--primary);opacity:0;transition:opacity .2s;}
+  .nav-item.active .nav-dot{opacity:1;}
+
+  .mobile-nav-toggle{display:none;}
+
+  /* ---------- Main column ---------- */
+  .main-col{min-width:0;}
+
+  /* ---------- Header block ---------- */
+  .page-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px;
+  }
+  .page-head-left h1{font-size:clamp(1.5rem,2.6vw,1.9rem);display:flex;align-items:center;gap:12px;letter-spacing:-.02em;}
+  .badge-count{font-size:.68rem;font-weight:700;letter-spacing:.03em;color:var(--accent);background:var(--gradient-soft);padding:5px 12px;border-radius:var(--radius-pill);border:1px solid rgba(108,99,255,.2);}
+  .page-head-left p{color:var(--text-soft);font-size:.9rem;margin-top:6px;}
+
+  .flash-stack{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+  .flash-message{font-size:.85rem;font-weight:500;padding:13px 16px;border-radius:14px;background:rgba(22,163,74,.08);color:#15803d;border:1px solid rgba(22,163,74,.22);display:flex;align-items:center;gap:8px;}
+
+  /* ---------- Hero card ---------- */
+  .hero-card{
+    position:relative;overflow:hidden;border-radius:var(--radius-card);
+    background:linear-gradient(135deg,rgba(108,99,255,.14),rgba(79,70,229,.08)),rgba(255,255,255,.65);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.6);box-shadow:var(--shadow-card);
+    padding:32px clamp(20px,3vw,40px);margin-bottom:24px;
+    display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;
+  }
+  .hero-shape{position:absolute;border-radius:50%;filter:blur(50px);opacity:.35;pointer-events:none;}
+  .hero-shape-a{width:220px;height:220px;background:var(--primary);top:-90px;right:120px;}
+  .hero-shape-b{width:160px;height:160px;background:var(--secondary);bottom:-70px;right:-30px;}
+
+  .hero-left{display:flex;gap:22px;align-items:center;position:relative;z-index:1;flex-wrap:wrap;}
+  .avatar-wrap{position:relative;flex-shrink:0;}
+  .avatar-ring{width:128px;height:128px;border-radius:50%;padding:4px;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;}
+  .avatar-img{width:120px;height:120px;border-radius:50%;object-fit:cover;background:#fff;border:3px solid #fff;display:block;}
+  .avatar-default{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#e9e5ff,#f1eeff);border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:var(--primary);}
+  .avatar-default svg{width:52px;height:52px;}
+  .avatar-edit-btn{position:absolute;bottom:2px;right:2px;width:36px;height:36px;border-radius:50%;background:var(--gradient-brand);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 16px -3px rgba(108,99,255,.7);border:3px solid #fff;transition:transform .2s;}
+  .avatar-edit-btn:hover{transform:scale(1.08);}
+  .avatar-edit-btn svg{width:16px;height:16px;}
+  .avatar-progress{position:absolute;inset:-6px;pointer-events:none;}
+
+  .avatar-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .chip-btn{font-size:.74rem;font-weight:600;padding:7px 13px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,99,255,.25);background:#fff;color:var(--primary);transition:background .2s;}
+  .chip-btn:hover{background:var(--gradient-soft);}
+  .chip-btn.danger{color:var(--danger);border-color:rgba(229,72,77,.3);}
+  .chip-btn.danger:hover{background:rgba(229,72,77,.07);}
+
+  .hero-info{display:flex;flex-direction:column;gap:6px;}
+  .hero-name{font-size:1.3rem;font-weight:800;letter-spacing:-.01em;}
+  .hero-role{font-size:.86rem;color:var(--accent);font-weight:600;}
+  .hero-contact{display:flex;flex-wrap:wrap;gap:14px;margin-top:2px;}
+  .hero-contact span{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-soft);}
+  .hero-contact svg{width:14px;height:14px;color:var(--text-faint);}
+  .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:5px 11px;border-radius:var(--radius-pill);}
+  .status-pill.ok{background:rgba(22,163,74,.1);color:#15803d;}
+  .status-pill.muted{background:#F1F2F6;color:var(--text-faint);}
+  .status-pill svg{width:12px;height:12px;}
+
+  .hero-right{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:1;}
+  .ring-wrap{position:relative;width:112px;height:112px;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-pct b{font-size:1.15rem;font-weight:800;color:var(--accent);}
+  .ring-pct span{font-size:.6rem;color:var(--text-faint);font-weight:600;letter-spacing:.02em;}
+  .hero-illustration{display:none;}
+  @media (min-width:1120px){
+    .hero-illustration{display:block;width:150px;height:150px;color:var(--primary);opacity:.9;}
+  }
+
+  /* ---------- Section cards ---------- */
+  .s-card{
+    background:rgba(255,255,255,.86);backdrop-filter:blur(10px);
+    border:1px solid rgba(229,231,235,.9);border-radius:var(--radius-card);
+    padding:32px clamp(18px,3vw,36px);margin-bottom:22px;box-shadow:var(--shadow-card);
+    scroll-margin-top:96px;transition:box-shadow .3s,transform .3s,border-color .3s;
+    opacity:0;transform:translateY(14px);animation:cardIn .6s ease forwards;
+  }
+  .s-card:hover{box-shadow:var(--shadow-card-hover);border-color:rgba(108,99,255,.28);transform:translateY(-2px);}
+  @keyframes cardIn{to{opacity:1;transform:translateY(0);}}
+
+  .s-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;}
+  .s-head-left{display:flex;align-items:center;gap:16px;min-width:0;}
+  .s-num{flex-shrink:0;width:48px;height:48px;border-radius:16px;background:var(--gradient-brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;box-shadow:0 10px 22px -6px rgba(108,99,255,.55);}
+  .s-titles h2{font-size:1.12rem;letter-spacing:-.01em;}
+  .s-titles p{font-size:.82rem;color:var(--text-faint);margin-top:2px;}
+  .s-collapse{flex-shrink:0;width:34px;height:34px;border-radius:11px;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--text-soft);transition:transform .3s,background .2s;}
+  .s-collapse:hover{background:var(--gradient-soft);}
+  .s-collapse svg{width:16px;height:16px;transition:transform .3s;}
+  .s-card.collapsed .s-collapse svg{transform:rotate(-90deg);}
+  .s-body{overflow:hidden;transition:grid-template-rows .35s ease;display:grid;grid-template-rows:1fr;}
+  .s-body-inner{overflow:hidden;}
+  .s-card.collapsed .s-body{grid-template-rows:0fr;}
+
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .field-group{display:flex;flex-direction:column;gap:7px;}
+  .field-group.span-2{grid-column:span 2;}
+  .field-group label{font-size:.82rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;}
+  .field-group label svg{width:14px;height:14px;color:var(--primary);flex-shrink:0;}
+  .field-group .optional{font-weight:400;color:var(--text-faint);}
+
+  .input-wrap{position:relative;}
+  .input-wrap .field-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--text-faint);pointer-events:none;transition:color .2s;}
+  .input-wrap:focus-within .field-icon{color:var(--primary);}
+
+  .field-group input[type=text],
+  .field-group input[type=email],
+  .field-group input[type=tel],
+  .field-group input[type=date],
+  .field-group input[type=number],
+  .field-group input[type=url],
+  .field-group select,
+  .field-group textarea{
+    width:100%;font-family:var(--font);font-size:.9rem;color:var(--text);
+    background:#fff;border:1.5px solid var(--border);
+    border-radius:var(--radius-field);padding:15px 16px 15px 44px;height:56px;
+    transition:border-color .25s,box-shadow .25s,background .25s;
+  }
+  .field-group select{padding-left:44px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235B6178' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+  .field-group textarea{resize:vertical;min-height:96px;height:auto;padding:16px;}
+  .field-group textarea.with-icon{padding-left:44px;}
+  .field-group input:hover,.field-group select:hover,.field-group textarea:hover{border-color:rgba(108,99,255,.4);}
+  .field-group input:focus,.field-group select:focus,.field-group textarea:focus{
+    outline:none;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(108,99,255,.14);
+  }
+
+  .checkbox-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .checkbox-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-pill);border:1.5px solid var(--border);background:#fff;font-size:.84rem;cursor:pointer;transition:border-color .2s,background .2s,transform .2s;}
+  .checkbox-pill:hover{transform:translateY(-1px);border-color:rgba(108,99,255,.35);}
+  .checkbox-pill:has(input:checked){border-color:var(--primary);background:var(--gradient-soft);color:var(--accent);font-weight:600;}
+  .checkbox-pill input{accent-color:var(--primary);width:15px;height:15px;}
+
+  .radio-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .radio-pill{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:var(--radius-pill);border:1.5px solid var(--border);background:#fff;font-size:.85rem;cursor:pointer;transition:all .2s;}
+  .radio-pill:has(input:checked){border-color:var(--primary);background:var(--gradient-soft);color:var(--accent);font-weight:700;}
+  .radio-pill input{accent-color:var(--primary);}
+
+  .subsection{margin-bottom:26px;}
+  .subsection:last-child{margin-bottom:0;}
+  .subsection h3{font-size:.86rem;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px dashed rgba(108,99,255,.25);display:flex;align-items:center;gap:8px;}
+
+  .repeat-card{border:1.5px dashed rgba(108,99,255,.3);border-radius:18px;padding:20px;margin-bottom:16px;position:relative;background:rgba(108,99,255,.035);}
+  .repeat-remove{position:absolute;top:14px;right:14px;font-size:.72rem;font-weight:700;color:var(--danger);padding:5px 12px;border-radius:var(--radius-pill);border:1px solid rgba(229,72,77,.3);background:#fff;transition:background .2s;}
+  .repeat-remove:hover{background:rgba(229,72,77,.08);}
+  .btn-add{display:inline-flex;align-items:center;gap:7px;font-size:.85rem;font-weight:700;color:var(--primary);padding:12px 20px;border-radius:var(--radius-pill);border:1.5px dashed rgba(108,99,255,.4);transition:background .2s,transform .2s;}
+  .btn-add:hover{background:var(--gradient-soft);transform:translateY(-1px);}
+  .btn-add svg{width:15px;height:15px;}
+
+  .checkbox-wrap{display:flex;align-items:flex-start;gap:11px;font-size:.88rem;color:var(--text-soft);cursor:pointer;}
+  .checkbox-wrap input{accent-color:var(--primary);width:18px;height:18px;margin-top:2px;flex-shrink:0;}
+
+  /* ---------- Floating save button ---------- */
+  .save-fab{
+    position:fixed;bottom:26px;right:26px;z-index:50;
+    display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.92rem;
+    padding:16px 28px;border-radius:var(--radius-pill);color:#fff;
+    background:linear-gradient(135deg,var(--primary),var(--accent));background-size:160% 160%;
+    box-shadow:var(--shadow-btn);transition:transform .25s,box-shadow .25s,background-position .6s;
+  }
+  .save-fab:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 20px 44px -10px rgba(108,99,255,.7);background-position:100% 0;}
+  .save-fab:active{transform:translateY(-1px) scale(.98);}
+  .save-fab svg{width:17px;height:17px;}
+
+  .section-hint{font-size:.82rem;color:var(--text-faint);margin-top:-10px;margin-bottom:18px;}
+
+  @media (max-width:1024px){
+    .app-shell{grid-template-columns:1fr;}
+    .sidenav{position:relative;top:0;max-height:none;display:none;}
+    .sidenav.open{display:block;}
+    .mobile-nav-toggle{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;color:var(--primary);background:#fff;border:1.5px solid rgba(108,99,255,.25);padding:10px 18px;border-radius:var(--radius-pill);margin-bottom:16px;}
+    .hero-card{grid-template-columns:1fr;}
+    .hero-right{align-items:flex-start;flex-direction:row;justify-content:flex-start;}
+  }
+  @media (max-width:600px){
+    .field-group.span-2{grid-column:span 1;}
+    .save-fab{right:16px;bottom:16px;padding:14px 20px;font-size:.85rem;}
+    .hero-left{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true"></div>
+<div class="blob blob-1" aria-hidden="true"></div>
+<div class="blob blob-2" aria-hidden="true"></div>
+<div class="blob blob-3" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="{{ url_for('dashboard') }}" class="logo">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg>
+    </span>
+    SmartApply
+  </a>
+  <a href="{{ url_for('dashboard') }}" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</header>
+
+<div class="app-shell">
+
+  <!-- ================= SIDEBAR NAV ================= -->
+  <button type="button" class="mobile-nav-toggle" id="mobileNavToggle">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+    Jump to section
+  </button>
+
+  <aside class="sidenav" id="sidenav">
+    <p class="sidenav-title">Profile sections</p>
+    <ul class="nav-list" id="navList">
+      <li class="nav-item"><a class="nav-link" href="#section-personal"><span class="nav-dot"></span><span class="nav-num">1</span><span class="nav-text"><span class="t">Personal Info</span><span class="d">Name, DOB, IDs</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-contact"><span class="nav-dot"></span><span class="nav-num">2</span><span class="nav-text"><span class="t">Contact Information</span><span class="d">Phone &amp; email</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-address"><span class="nav-dot"></span><span class="nav-num">3</span><span class="nav-text"><span class="t">Address</span><span class="d">Permanent &amp; current</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-objective"><span class="nav-dot"></span><span class="nav-num">4</span><span class="nav-text"><span class="t">Career Objective</span><span class="d">About you</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-education"><span class="nav-dot"></span><span class="nav-num">5</span><span class="nav-text"><span class="t">Education</span><span class="d">SSC to PG</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-tech-skills"><span class="nav-dot"></span><span class="nav-num">6</span><span class="nav-text"><span class="t">Skills</span><span class="d">Technical &amp; soft</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-experience"><span class="nav-dot"></span><span class="nav-num">7</span><span class="nav-text"><span class="t">Experience</span><span class="d">Work history</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-internship"><span class="nav-dot"></span><span class="nav-num">8</span><span class="nav-text"><span class="t">Internship</span><span class="d">Details</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-projects"><span class="nav-dot"></span><span class="nav-num">9</span><span class="nav-text"><span class="t">Projects</span><span class="d">Portfolio work</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-certifications"><span class="nav-dot"></span><span class="nav-num">10</span><span class="nav-text"><span class="t">Certifications</span><span class="d">Courses &amp; badges</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-achievements"><span class="nav-dot"></span><span class="nav-num">11</span><span class="nav-text"><span class="t">Achievements</span><span class="d">Awards &amp; wins</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-languages"><span class="nav-dot"></span><span class="nav-num">12</span><span class="nav-text"><span class="t">Languages</span><span class="d">Spoken &amp; written</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-social"><span class="nav-dot"></span><span class="nav-num">13</span><span class="nav-text"><span class="t">Social &amp; Portfolio</span><span class="d">Links &amp; profiles</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-preferences"><span class="nav-dot"></span><span class="nav-num">14</span><span class="nav-text"><span class="t">Career Preferences</span><span class="d">Role &amp; location</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-hobbies"><span class="nav-dot"></span><span class="nav-num">15</span><span class="nav-text"><span class="t">Hobbies &amp; Interests</span><span class="d">Outside work</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-references"><span class="nav-dot"></span><span class="nav-num">16</span><span class="nav-text"><span class="t">References</span><span class="d">Optional contacts</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-declaration"><span class="nav-dot"></span><span class="nav-num">17</span><span class="nav-text"><span class="t">Declaration</span><span class="d">Confirm accuracy</span></span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#section-security"><span class="nav-dot"></span><span class="nav-num">18</span><span class="nav-text"><span class="t">Additional Details</span><span class="d">Account recovery</span></span></a></li>
+    </ul>
+  </aside>
+
+  <!-- ================= MAIN COLUMN ================= -->
+  <main class="main-col">
+
+    <div class="page-head">
+      <div class="page-head-left">
+        <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Your Profile <span class="badge-count">18 Sections</span>
+        </h1>
+        <p>Complete your profile to increase job matching.</p>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-stack">
+      {% for message in messages %}
+      <div class="flash-message">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" novalidate id="profileForm">
+
+      <!-- ================= HERO CARD ================= -->
+      <div class="hero-card">
+        <div class="hero-shape hero-shape-a" aria-hidden="true"></div>
+        <div class="hero-shape hero-shape-b" aria-hidden="true"></div>
+
+        <div class="hero-left">
+          <div class="avatar-wrap">
+            <div class="avatar-ring">
+              {% if data.photo_path %}
+              <img src="{{ url_for('static', filename=data.photo_path) }}" alt="Profile photo" class="avatar-img" id="avatarPreviewImg">
+              {% else %}
+              <div class="avatar-default" id="avatarDefault">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              </div>
+              <img src="" alt="Profile photo" class="avatar-img" id="avatarPreviewImg" style="display:none;">
+              {% endif %}
+            </div>
+            <label class="avatar-edit-btn" for="photo" title="Change photo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </label>
+          </div>
+
+          <div class="hero-info">
+            <div>
+              <div class="hero-name">{{ data.full_name or "Your Name" }}</div>
+              <div class="hero-role">{{ data.exp_job_role or data.job_pref.role or "Aspiring Professional" }}</div>
+            </div>
+            <div class="hero-contact">
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><path d="M2 6h20v12H2z"/></svg>{{ data.email or "Add your email" }}</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.36 1.79.7 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.27a2 2 0 0 1 2.11-.45c.84.34 1.73.58 2.63.7A2 2 0 0 1 22 16.92z"/></svg>{{ data.mobile_number or "Add your phone" }}</span>
+            </div>
+
+            <div class="hero-badges">
+              {% if data.documents.resume_path %}
+              <a class="status-pill ok" href="{{ url_for('resume_manager') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Resume Uploaded</a>
+              {% else %}
+              <a class="status-pill muted" href="{{ url_for('resume_manager') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>No Resume Yet</a>
+              {% endif %}
+              {% if data.email %}
+              <span class="status-pill ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Email Added</span>
+              {% else %}
+              <span class="status-pill muted">Email Not Added</span>
+              {% endif %}
+              {% if data.mobile_number %}
+              <span class="status-pill ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Mobile Added</span>
+              {% else %}
+              <span class="status-pill muted">Mobile Not Added</span>
+              {% endif %}
+            </div>
+
+            <div class="avatar-actions">
+              <label class="chip-btn" for="photo">Upload Photo</label>
+              <button type="button" class="chip-btn danger" id="removePhotoBtn">Remove Photo</button>
+            </div>
+            <input type="file" id="photo" name="photo" accept=".png,.jpg,.jpeg,.webp" style="display:none;">
+            <input type="hidden" name="remove_photo" id="removePhotoFlag" value="0">
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="ring-wrap" id="ringWrap" data-pct="{{ profile_completion or 0 }}">
+            <svg width="112" height="112" viewBox="0 0 112 112">
+              <circle cx="56" cy="56" r="48" fill="none" stroke="#E9E7FF" stroke-width="10"/>
+              <circle id="ringProgress" cx="56" cy="56" r="48" fill="none" stroke="url(#ringGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#6C63FF"/>
+                  <stop offset="100%" stop-color="#4F46E5"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="ring-pct"><b id="ringPctText">{{ profile_completion or 0 }}%</b><span>Complete</span></div>
+          </div>
+
+          <svg class="hero-illustration" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+            <circle cx="100" cy="100" r="92" fill="#6C63FF" opacity=".06"/>
+            <rect x="55" y="120" width="90" height="10" rx="5" fill="#6C63FF" opacity=".18"/>
+            <rect x="65" y="70" width="70" height="50" rx="6" fill="#FFFFFF" stroke="#6C63FF" stroke-width="2.5"/>
+            <rect x="72" y="80" width="56" height="6" rx="3" fill="#8B5CF6" opacity=".5"/>
+            <rect x="72" y="92" width="40" height="6" rx="3" fill="#8B5CF6" opacity=".3"/>
+            <rect x="40" y="55" width="34" height="42" rx="5" fill="#fff" stroke="#4F46E5" stroke-width="2" transform="rotate(-8 57 76)"/>
+            <rect x="128" y="50" width="30" height="38" rx="5" fill="#fff" stroke="#8B5CF6" stroke-width="2" transform="rotate(10 143 69)"/>
+            <circle cx="100" cy="45" r="14" fill="#6C63FF" opacity=".85"/>
+            <path d="M93 45l5 5 9-10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- ================= 1. Personal Information ================= -->
+      <section class="s-card" id="section-personal">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">1</div>
+            <div class="s-titles"><h2>Personal Information</h2><p>The basics that identify you</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group span-2">
+            <label for="full_name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Full Name</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <input type="text" id="full_name" name="full_name" value="{{ data.full_name or '' }}" required></div>
+          </div>
+          <div class="field-group">
+            <label for="gender">Gender</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/></svg>
+            <select id="gender" name="gender">
+              <option value="" {{ 'selected' if not data.gender }}>Select</option>
+              <option value="Female" {{ 'selected' if data.gender == 'Female' }}>Female</option>
+              <option value="Male" {{ 'selected' if data.gender == 'Male' }}>Male</option>
+              <option value="Other" {{ 'selected' if data.gender == 'Other' }}>Other</option>
+            </select></div>
+          </div>
+          <div class="field-group">
+            <label for="dob">Date of Birth</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <input type="date" id="dob" name="dob" value="{{ data.dob or '' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="age">Age</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <input type="number" id="age" name="age" min="14" max="100" value="{{ data.age or '' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="nationality">Nationality</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+            <input type="text" id="nationality" name="nationality" value="{{ data.nationality or 'Indian' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="marital_status">Marital Status</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+            <select id="marital_status" name="marital_status">
+              <option value="" {{ 'selected' if not data.marital_status }}>Select</option>
+              <option value="Single" {{ 'selected' if data.marital_status == 'Single' }}>Single</option>
+              <option value="Married" {{ 'selected' if data.marital_status == 'Married' }}>Married</option>
+            </select></div>
+          </div>
+          <div class="field-group">
+            <label for="blood_group">Blood Group <span class="optional">(optional)</span></label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2s7 8 7 13a7 7 0 1 1-14 0c0-5 7-13 7-13z"/></svg>
+            <input type="text" id="blood_group" name="blood_group" placeholder="e.g. O+" value="{{ data.blood_group or '' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="aadhaar_number">Aadhaar Number <span class="optional">(optional)</span></label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+            <input type="text" id="aadhaar_number" name="aadhaar_number" value="{{ data.aadhaar_number or '' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="pan_number">PAN Number <span class="optional">(optional)</span></label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>
+            <input type="text" id="pan_number" name="pan_number" value="{{ data.pan_number or '' }}"></div>
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 2. Contact Information ================= -->
+      <section class="s-card" id="section-contact">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">2</div>
+            <div class="s-titles"><h2>Contact Information</h2><p>How employers can reach you</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group">
+            <label for="mobile_number">Mobile Number</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.36 1.79.7 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.27a2 2 0 0 1 2.11-.45c.84.34 1.73.58 2.63.7A2 2 0 0 1 22 16.92z"/></svg>
+            <input type="tel" id="mobile_number" name="mobile_number" value="{{ data.mobile_number or '' }}" required></div>
+          </div>
+          <div class="field-group">
+            <label for="alt_mobile_number">Alternate Mobile Number</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.36 1.79.7 2.63a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.45-1.27a2 2 0 0 1 2.11-.45c.84.34 1.73.58 2.63.7A2 2 0 0 1 22 16.92z"/></svg>
+            <input type="tel" id="alt_mobile_number" name="alt_mobile_number" value="{{ data.alt_mobile_number or '' }}"></div>
+          </div>
+          <div class="field-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+            <input type="email" id="email" name="email" value="{{ data.email or '' }}" required></div>
+          </div>
+          <div class="field-group">
+            <label for="alt_email">Alternate Email Address</label>
+            <div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>
+            <input type="email" id="alt_email" name="alt_email" value="{{ data.alt_email or '' }}"></div>
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 3. Address Details ================= -->
+      <section class="s-card" id="section-address">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">3</div>
+            <div class="s-titles"><h2>Address Details</h2><p>Permanent &amp; current address</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Permanent Address</h3>
+          <div class="field-grid">
+            <div class="field-group"><label>House No.</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><input type="text" name="perm_house_no" value="{{ data.perm_house_no or '' }}"></div></div>
+            <div class="field-group"><label>Street</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_street" value="{{ data.perm_street or '' }}"></div></div>
+            <div class="field-group"><label>Area / Locality</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_area" value="{{ data.perm_area or '' }}"></div></div>
+            <div class="field-group"><label>City</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_city" value="{{ data.perm_city or '' }}"></div></div>
+            <div class="field-group"><label>District</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_district" value="{{ data.perm_district or '' }}"></div></div>
+            <div class="field-group"><label>State</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_state" value="{{ data.perm_state or '' }}"></div></div>
+            <div class="field-group"><label>Country</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg><input type="text" name="perm_country" value="{{ data.perm_country or 'India' }}"></div></div>
+            <div class="field-group"><label>PIN Code</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="perm_pincode" value="{{ data.perm_pincode or '' }}"></div></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Current Address</h3>
+          <label class="checkbox-wrap" style="margin-bottom:16px;">
+            <input type="checkbox" id="same_as_permanent" name="same_as_permanent" {{ 'checked' if data.same_as_permanent }}>
+            Same as Permanent Address
+          </label>
+          <div class="field-grid" id="currentAddressFields">
+            <div class="field-group"><label>House No.</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><input type="text" name="curr_house_no" value="{{ data.curr_house_no or '' }}"></div></div>
+            <div class="field-group"><label>Street</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_street" value="{{ data.curr_street or '' }}"></div></div>
+            <div class="field-group"><label>Area / Locality</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_area" value="{{ data.curr_area or '' }}"></div></div>
+            <div class="field-group"><label>City</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_city" value="{{ data.curr_city or '' }}"></div></div>
+            <div class="field-group"><label>District</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_district" value="{{ data.curr_district or '' }}"></div></div>
+            <div class="field-group"><label>State</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_state" value="{{ data.curr_state or '' }}"></div></div>
+            <div class="field-group"><label>Country</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg><input type="text" name="curr_country" value="{{ data.curr_country or '' }}"></div></div>
+            <div class="field-group"><label>PIN Code</label><div class="input-wrap"><svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/></svg><input type="text" name="curr_pincode" value="{{ data.curr_pincode or '' }}"></div></div>
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 4. Career Objective ================= -->
+      <section class="s-card" id="section-objective">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">4</div>
+            <div class="s-titles"><h2>Career Objective</h2><p>A short summary recruiters see first</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-group">
+          <label for="career_objective">About Me</label>
+          <textarea id="career_objective" name="career_objective" placeholder="A short summary of your goals and strengths...">{{ data.career_objective or '' }}</textarea>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 5. Educational Details ================= -->
+      <section class="s-card" id="section-education">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">5</div>
+            <div class="s-titles"><h2>Educational Details</h2><p>From 10th through post-graduation</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>SSC (10th)</h3>
+          <div class="field-grid">
+            <div class="field-group"><label>School Name</label><input type="text" name="ssc_school" value="{{ data.education.ssc.school or '' }}"></div>
+            <div class="field-group"><label>Board</label><input type="text" name="ssc_board" value="{{ data.education.ssc.board or '' }}"></div>
+            <div class="field-group"><label>Passing Year</label><input type="text" name="ssc_year" value="{{ data.education.ssc.year or '' }}"></div>
+            <div class="field-group"><label>Percentage / CGPA</label><input type="text" name="ssc_score" value="{{ data.education.ssc.score or '' }}"></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Intermediate (12th)</h3>
+          <div class="field-grid">
+            <div class="field-group"><label>College Name</label><input type="text" name="inter_college" value="{{ data.education.intermediate.college or '' }}"></div>
+            <div class="field-group"><label>Board</label><input type="text" name="inter_board" value="{{ data.education.intermediate.board or '' }}"></div>
+            <div class="field-group"><label>Stream</label><input type="text" name="inter_stream" value="{{ data.education.intermediate.stream or '' }}"></div>
+            <div class="field-group"><label>Passing Year</label><input type="text" name="inter_year" value="{{ data.education.intermediate.year or '' }}"></div>
+            <div class="field-group"><label>Percentage / CGPA</label><input type="text" name="inter_score" value="{{ data.education.intermediate.score or '' }}"></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Diploma <span class="optional">(optional)</span></h3>
+          <div class="field-grid">
+            <div class="field-group"><label>College Name</label><input type="text" name="diploma_college" value="{{ data.education.diploma.college or '' }}"></div>
+            <div class="field-group"><label>Branch</label><input type="text" name="diploma_branch" value="{{ data.education.diploma.branch or '' }}"></div>
+            <div class="field-group"><label>Passing Year</label><input type="text" name="diploma_year" value="{{ data.education.diploma.year or '' }}"></div>
+            <div class="field-group"><label>Percentage / CGPA</label><input type="text" name="diploma_score" value="{{ data.education.diploma.score or '' }}"></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Graduation</h3>
+          <div class="field-grid">
+            <div class="field-group"><label>College Name</label><input type="text" name="grad_college" value="{{ data.education.graduation.college or '' }}"></div>
+            <div class="field-group"><label>University</label><input type="text" name="grad_university" value="{{ data.education.graduation.university or '' }}"></div>
+            <div class="field-group"><label>Degree</label><input type="text" name="grad_degree" value="{{ data.education.graduation.degree or '' }}"></div>
+            <div class="field-group"><label>Branch / Specialization</label><input type="text" name="grad_branch" value="{{ data.education.graduation.branch or '' }}"></div>
+            <div class="field-group"><label>Current Year</label><input type="text" name="grad_current_year" value="{{ data.education.graduation.current_year or '' }}"></div>
+            <div class="field-group"><label>CGPA / Percentage</label><input type="text" name="grad_score" value="{{ data.education.graduation.score or '' }}"></div>
+            <div class="field-group"><label>Graduation Year</label><input type="text" name="grad_year" value="{{ data.education.graduation.year or '' }}"></div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg>Post Graduation <span class="optional">(optional)</span></h3>
+          <div class="field-grid">
+            <div class="field-group"><label>College Name</label><input type="text" name="pg_college" value="{{ data.education.post_graduation.college or '' }}"></div>
+            <div class="field-group"><label>University</label><input type="text" name="pg_university" value="{{ data.education.post_graduation.university or '' }}"></div>
+            <div class="field-group"><label>Degree</label><input type="text" name="pg_degree" value="{{ data.education.post_graduation.degree or '' }}"></div>
+            <div class="field-group"><label>Branch</label><input type="text" name="pg_branch" value="{{ data.education.post_graduation.branch or '' }}"></div>
+            <div class="field-group"><label>Passing Year</label><input type="text" name="pg_year" value="{{ data.education.post_graduation.year or '' }}"></div>
+            <div class="field-group"><label>Percentage / CGPA</label><input type="text" name="pg_score" value="{{ data.education.post_graduation.score or '' }}"></div>
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 6. Technical Skills ================= -->
+      <section class="s-card" id="section-tech-skills">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">6</div>
+            <div class="s-titles"><h2>Technical Skills</h2><p>Tools and languages you work with</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="checkbox-grid">
+          {% for skill in ["HTML","CSS","JavaScript","Python","Java","C","C++","SQL/MySQL","React","Angular","Node.js","Flask","Git","GitHub"] %}
+          <label class="checkbox-pill">
+            <input type="checkbox" name="technical_skills" value="{{ skill }}" {{ 'checked' if skill in (data.technical_skills or []) }}>
+            {{ skill }}
+          </label>
+          {% endfor %}
+        </div>
+        <div class="field-group" style="margin-top:18px;max-width:340px;">
+          <label>Other Skills</label>
+          <input type="text" name="other_tech_skill" placeholder="Comma-separated, if any">
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 7. Soft Skills ================= -->
+      <section class="s-card" id="section-soft-skills">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">7</div>
+            <div class="s-titles"><h2>Soft Skills</h2><p>How you work with others</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="checkbox-grid">
+          {% for skill in ["Communication","Teamwork","Leadership","Problem Solving","Time Management","Adaptability"] %}
+          <label class="checkbox-pill">
+            <input type="checkbox" name="soft_skills" value="{{ skill }}" {{ 'checked' if skill in (data.soft_skills or []) }}>
+            {{ skill }}
+          </label>
+          {% endfor %}
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 8. Experience ================= -->
+      <section class="s-card" id="section-experience">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">8</div>
+            <div class="s-titles"><h2>Experience</h2><p>Your most recent role</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="radio-row" style="margin-bottom:20px;">
+          <label class="radio-pill"><input type="radio" name="experience_type" value="Fresher" {{ 'checked' if not data.experience_type or data.experience_type == 'Fresher' }}> Fresher</label>
+          <label class="radio-pill"><input type="radio" name="experience_type" value="Experienced" {{ 'checked' if data.experience_type == 'Experienced' }}> Experienced</label>
+        </div>
+        <div class="field-grid">
+          <div class="field-group"><label>Company Name</label><input type="text" name="exp_company_name" value="{{ data.exp_company_name or '' }}"></div>
+          <div class="field-group"><label>Job Role</label><input type="text" name="exp_job_role" value="{{ data.exp_job_role or '' }}"></div>
+          <div class="field-group"><label>Start Date</label><input type="date" name="exp_start_date" value="{{ data.exp_start_date or '' }}"></div>
+          <div class="field-group"><label>End Date</label><input type="date" name="exp_end_date" value="{{ data.exp_end_date or '' }}"></div>
+          <div class="field-group"><label>Total Experience</label><input type="text" name="exp_total_experience" placeholder="e.g. 2 years 3 months" value="{{ data.exp_total_experience or '' }}"></div>
+          <div class="field-group span-2"><label>Responsibilities</label><textarea name="exp_responsibilities">{{ data.exp_responsibilities or '' }}</textarea></div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 9. Internship ================= -->
+      <section class="s-card" id="section-internship">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">9</div>
+            <div class="s-titles"><h2>Internship Details</h2><p>Any internships you've completed</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group"><label>Company Name</label><input type="text" name="intern_company" value="{{ data.internship.company or '' }}"></div>
+          <div class="field-group"><label>Internship Role</label><input type="text" name="intern_role" value="{{ data.internship.role or '' }}"></div>
+          <div class="field-group"><label>Duration</label><input type="text" name="intern_duration" value="{{ data.internship.duration or '' }}"></div>
+          <div class="field-group"><label>Technologies Used</label><input type="text" name="intern_technologies" value="{{ data.internship.technologies or '' }}"></div>
+          <div class="field-group span-2"><label>Description</label><textarea name="intern_description">{{ data.internship.description or '' }}</textarea></div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 10. Projects ================= -->
+      <section class="s-card" id="section-projects">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">10</div>
+            <div class="s-titles"><h2>Projects</h2><p>Show what you've built</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div id="projectsContainer">
+          {% for p in data.projects or [{}] %}
+          <div class="repeat-card">
+            {% if not loop.first %}<button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>{% endif %}
+            <div class="field-grid">
+              <div class="field-group span-2"><label>Project Title</label><input type="text" name="project_title" value="{{ p.title or '' }}"></div>
+              <div class="field-group span-2"><label>Project Description</label><textarea name="project_description">{{ p.description or '' }}</textarea></div>
+              <div class="field-group"><label>Technologies Used</label><input type="text" name="project_technologies" value="{{ p.technologies or '' }}"></div>
+              <div class="field-group"><label>Team Size</label><input type="text" name="project_team_size" value="{{ p.team_size or '' }}"></div>
+              <div class="field-group"><label>Role in Project</label><input type="text" name="project_role" value="{{ p.role or '' }}"></div>
+              <div class="field-group"><label>Project Duration</label><input type="text" name="project_duration" value="{{ p.duration or '' }}"></div>
+              <div class="field-group"><label>GitHub Link</label><input type="url" name="project_github" value="{{ p.github or '' }}"></div>
+              <div class="field-group"><label>Live Demo Link</label><input type="url" name="project_demo" value="{{ p.demo or '' }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn-add" onclick="addRepeatCard('projectsContainer', 'projectTemplate')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Add another project</button>
+        </div></div>
+      </section>
+
+      <!-- ================= 11. Certifications ================= -->
+      <section class="s-card" id="section-certifications">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">11</div>
+            <div class="s-titles"><h2>Certifications</h2><p>Courses and credentials earned</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div id="certsContainer">
+          {% for c in data.certifications or [{}] %}
+          <div class="repeat-card">
+            {% if not loop.first %}<button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>{% endif %}
+            <div class="field-grid">
+              <div class="field-group"><label>Certificate Name</label><input type="text" name="cert_name" value="{{ c.name or '' }}"></div>
+              <div class="field-group"><label>Organization</label><input type="text" name="cert_org" value="{{ c.organization or '' }}"></div>
+              <div class="field-group"><label>Issue Date</label><input type="date" name="cert_issue_date" value="{{ c.issue_date or '' }}"></div>
+              <div class="field-group"><label>Certificate ID</label><input type="text" name="cert_id" value="{{ c.cert_id or '' }}"></div>
+              <div class="field-group span-2"><label>Certificate Link</label><input type="url" name="cert_link" value="{{ c.link or '' }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn-add" onclick="addRepeatCard('certsContainer', 'certTemplate')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Add another certification</button>
+        </div></div>
+      </section>
+
+      <!-- ================= 12. Achievements ================= -->
+      <section class="s-card" id="section-achievements">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">12</div>
+            <div class="s-titles"><h2>Achievements</h2><p>Moments you're proud of</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group"><label>Academic Achievements</label><textarea name="achv_academic">{{ data.achievements.academic or '' }}</textarea></div>
+          <div class="field-group"><label>Technical Achievements</label><textarea name="achv_technical">{{ data.achievements.technical or '' }}</textarea></div>
+          <div class="field-group"><label>Hackathons</label><textarea name="achv_hackathons">{{ data.achievements.hackathons or '' }}</textarea></div>
+          <div class="field-group"><label>Workshops</label><textarea name="achv_workshops">{{ data.achievements.workshops or '' }}</textarea></div>
+          <div class="field-group"><label>Paper Presentations</label><textarea name="achv_papers">{{ data.achievements.paper_presentations or '' }}</textarea></div>
+          <div class="field-group"><label>Awards</label><textarea name="achv_awards">{{ data.achievements.awards or '' }}</textarea></div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 13. Languages ================= -->
+      <section class="s-card" id="section-languages">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">13</div>
+            <div class="s-titles"><h2>Languages Known</h2><p>Spoken and written fluency</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="checkbox-grid">
+          {% for lang in ["English","Telugu","Hindi"] %}
+          <label class="checkbox-pill">
+            <input type="checkbox" name="languages" value="{{ lang }}" {{ 'checked' if lang in (data.languages or []) }}>
+            {{ lang }}
+          </label>
+          {% endfor %}
+        </div>
+        <div class="field-group" style="margin-top:18px;max-width:340px;">
+          <label>Other Languages</label>
+          <input type="text" name="other_language" placeholder="Comma-separated, if any">
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 14. Social Profiles ================= -->
+      <section class="s-card" id="section-social">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">14</div>
+            <div class="s-titles"><h2>Social &amp; Portfolio Links</h2><p>Where recruiters can see more of you</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group"><label>LinkedIn Profile</label><input type="url" name="social_linkedin" value="{{ data.social.linkedin or '' }}"></div>
+          <div class="field-group"><label>GitHub Profile</label><input type="url" name="social_github" value="{{ data.social.github or '' }}"></div>
+          <div class="field-group"><label>Portfolio Website</label><input type="url" name="social_portfolio" value="{{ data.social.portfolio or '' }}"></div>
+          <div class="field-group"><label>HackerRank Profile</label><input type="url" name="social_hackerrank" value="{{ data.social.hackerrank or '' }}"></div>
+          <div class="field-group"><label>LeetCode Profile</label><input type="url" name="social_leetcode" value="{{ data.social.leetcode or '' }}"></div>
+          <div class="field-group"><label>CodeChef Profile</label><input type="url" name="social_codechef" value="{{ data.social.codechef or '' }}"></div>
+          <div class="field-group"><label>Codeforces Profile</label><input type="url" name="social_codeforces" value="{{ data.social.codeforces or '' }}"></div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 15. Job Preferences ================= -->
+      <section class="s-card" id="section-preferences">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">15</div>
+            <div class="s-titles"><h2>Career Preferences</h2><p>What you're looking for next</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group"><label>Preferred Job Role</label><input type="text" name="pref_role" value="{{ data.job_pref.role or '' }}"></div>
+          <div class="field-group"><label>Preferred Industry</label><input type="text" name="pref_industry" value="{{ data.job_pref.industry or '' }}"></div>
+          <div class="field-group"><label>Preferred Location</label><input type="text" name="pref_location" value="{{ data.job_pref.location or '' }}"></div>
+          <div class="field-group"><label>Expected Salary</label><input type="text" name="pref_salary" value="{{ data.job_pref.expected_salary or '' }}"></div>
+          <div class="field-group"><label>Notice Period</label><input type="text" name="pref_notice_period" value="{{ data.job_pref.notice_period or '' }}"></div>
+          <div class="field-group">
+            <label>Willing to Relocate</label>
+            <select name="pref_relocate">
+              <option value="Yes" {{ 'selected' if data.job_pref.willing_to_relocate == 'Yes' }}>Yes</option>
+              <option value="No" {{ 'selected' if not data.job_pref.willing_to_relocate or data.job_pref.willing_to_relocate == 'No' }}>No</option>
+            </select>
+          </div>
+          <div class="field-group span-2">
+            <label>Employment Type</label>
+            <div class="checkbox-grid">
+              {% for t in ["Full Time","Part Time","Internship","Remote","Hybrid"] %}
+              <label class="checkbox-pill">
+                <input type="checkbox" name="employment_type" value="{{ t }}" {{ 'checked' if t in (data.job_pref.employment_type or []) }}>
+                {{ t }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 16. Hobbies ================= -->
+      <section class="s-card" id="section-hobbies">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">16</div>
+            <div class="s-titles"><h2>Hobbies &amp; Interests</h2><p>A glimpse outside of work</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div class="field-grid">
+          <div class="field-group"><label>Hobbies</label><input type="text" name="hobbies" value="{{ data.hobbies or '' }}"></div>
+          <div class="field-group"><label>Interests</label><input type="text" name="interests" value="{{ data.interests or '' }}"></div>
+        </div>
+        </div></div>
+      </section>
+
+      <!-- ================= 17. References ================= -->
+      <section class="s-card" id="section-references">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">17</div>
+            <div class="s-titles"><h2>References <span class="optional">(optional)</span></h2><p>People who can vouch for you</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <div id="refsContainer">
+          {% for r in data.references_list or [{}] %}
+          <div class="repeat-card">
+            {% if not loop.first %}<button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>{% endif %}
+            <div class="field-grid">
+              <div class="field-group"><label>Reference Name</label><input type="text" name="ref_name" value="{{ r.name or '' }}"></div>
+              <div class="field-group"><label>Designation</label><input type="text" name="ref_designation" value="{{ r.designation or '' }}"></div>
+              <div class="field-group"><label>Company</label><input type="text" name="ref_company" value="{{ r.company or '' }}"></div>
+              <div class="field-group"><label>Contact Number</label><input type="tel" name="ref_contact" value="{{ r.contact or '' }}"></div>
+              <div class="field-group"><label>Email</label><input type="email" name="ref_email" value="{{ r.email or '' }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn-add" onclick="addRepeatCard('refsContainer', 'refTemplate')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Add another reference</button>
+        </div></div>
+      </section>
+
+      <!-- ================= 18. Declaration ================= -->
+      <section class="s-card" id="section-declaration">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">18</div>
+            <div class="s-titles"><h2>Declaration</h2><p>Confirm your details are accurate</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <label class="checkbox-wrap">
+          <input type="checkbox" name="declaration" {{ 'checked' if data.declaration }}>
+          I hereby declare that the information provided above is true and correct to the best of my knowledge.
+        </label>
+        </div></div>
+      </section>
+
+      <!-- ================= 19. Account Recovery ================= -->
+      <section class="s-card" id="section-security">
+        <div class="s-head">
+          <div class="s-head-left">
+            <div class="s-num">19</div>
+            <div class="s-titles"><h2>Additional Details</h2><p>Account recovery backup</p></div>
+          </div>
+          <button type="button" class="s-collapse" data-collapse><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="s-body"><div class="s-body-inner">
+        <p class="section-hint">Your username, email, and password are already set from registration — this just adds a backup way to recover your account.</p>
+        <div class="field-grid">
+          <div class="field-group span-2">
+            <label>Security Question</label>
+            <input type="text" name="security_question" placeholder="e.g. What was your first school?" value="{{ data.security_question or '' }}">
+          </div>
+          <div class="field-group span-2">
+            <label>Security Answer</label>
+            <input type="text" name="security_answer" value="{{ data.security_answer or '' }}">
+          </div>
+        </div>
+        </div></div>
+      </section>
+
+      <button type="submit" class="save-fab">
+        Save Profile
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+  </main>
+</div>
+
+<!-- Hidden templates for JS-cloned repeatable rows -->
+<template id="projectTemplate">
+  <div class="repeat-card">
+    <button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>
+    <div class="field-grid">
+      <div class="field-group span-2"><label>Project Title</label><input type="text" name="project_title"></div>
+      <div class="field-group span-2"><label>Project Description</label><textarea name="project_description"></textarea></div>
+      <div class="field-group"><label>Technologies Used</label><input type="text" name="project_technologies"></div>
+      <div class="field-group"><label>Team Size</label><input type="text" name="project_team_size"></div>
+      <div class="field-group"><label>Role in Project</label><input type="text" name="project_role"></div>
+      <div class="field-group"><label>Project Duration</label><input type="text" name="project_duration"></div>
+      <div class="field-group"><label>GitHub Link</label><input type="url" name="project_github"></div>
+      <div class="field-group"><label>Live Demo Link</label><input type="url" name="project_demo"></div>
+    </div>
+  </div>
+</template>
+
+<template id="certTemplate">
+  <div class="repeat-card">
+    <button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>
+    <div class="field-grid">
+      <div class="field-group"><label>Certificate Name</label><input type="text" name="cert_name"></div>
+      <div class="field-group"><label>Organization</label><input type="text" name="cert_org"></div>
+      <div class="field-group"><label>Issue Date</label><input type="date" name="cert_issue_date"></div>
+      <div class="field-group"><label>Certificate ID</label><input type="text" name="cert_id"></div>
+      <div class="field-group span-2"><label>Certificate Link</label><input type="url" name="cert_link"></div>
+    </div>
+  </div>
+</template>
+
+<template id="refTemplate">
+  <div class="repeat-card">
+    <button type="button" class="repeat-remove" onclick="this.parentElement.remove()">Remove</button>
+    <div class="field-grid">
+      <div class="field-group"><label>Reference Name</label><input type="text" name="ref_name"></div>
+      <div class="field-group"><label>Designation</label><input type="text" name="ref_designation"></div>
+      <div class="field-group"><label>Company</label><input type="text" name="ref_company"></div>
+      <div class="field-group"><label>Contact Number</label><input type="tel" name="ref_contact"></div>
+      <div class="field-group"><label>Email</label><input type="email" name="ref_email"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+  // ---- Repeatable card cloning (unchanged behavior) ----
+  function addRepeatCard(containerId, templateId) {
+    const container = document.getElementById(containerId);
+    const template = document.getElementById(templateId);
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+  }
+
+  // ---- Same-as-permanent-address toggle (unchanged behavior) ----
+  const sameAsPermanent = document.getElementById('same_as_permanent');
+  const currentFields = document.getElementById('currentAddressFields');
+  function toggleCurrentAddress() {
+    currentFields.style.display = sameAsPermanent.checked ? 'none' : 'grid';
+  }
+  sameAsPermanent.addEventListener('change', toggleCurrentAddress);
+  toggleCurrentAddress();
+
+  // ---- Lucide icons ----
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) lucide.createIcons();
+  });
+  window.addEventListener('load', () => {
+    if (window.lucide) lucide.createIcons();
+  });
+
+  // ---- Sidebar active-section tracking + smooth scroll ----
+  const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+  const navItems = navLinks.map(l => l.closest('.nav-item'));
+  const sections = navLinks.map(l => document.querySelector(l.getAttribute('href')));
+
+  function setActive(id) {
+    navItems.forEach((item, i) => {
+      item.classList.toggle('active', sections[i] && sections[i].id === id);
+    });
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) setActive(entry.target.id);
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(sec => { if (sec) observer.observe(sec); });
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const sidenav = document.getElementById('sidenav');
+        if (window.innerWidth <= 1024) sidenav.classList.remove('open');
+      }
+    });
+  });
+
+  // ---- Mobile sidebar toggle ----
+  const mobileToggle = document.getElementById('mobileNavToggle');
+  const sidenav = document.getElementById('sidenav');
+  if (mobileToggle) {
+    mobileToggle.addEventListener('click', () => sidenav.classList.toggle('open'));
+  }
+
+  // ---- Collapsible section cards ----
+  document.querySelectorAll('[data-collapse]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.s-card').classList.toggle('collapsed');
+    });
+  });
+
+  // ---- Staggered card fade-in ----
+  document.querySelectorAll('.s-card').forEach((card, i) => {
+    card.style.animationDelay = (i * 0.04) + 's';
+  });
+
+  // ---- Profile completion ring ----
+  const ringWrap = document.getElementById('ringWrap');
+  const ringProgress = document.getElementById('ringProgress');
+  if (ringWrap && ringProgress) {
+    const pct = Math.max(0, Math.min(100, parseInt(ringWrap.dataset.pct || '0', 10)));
+    const circumference = 2 * Math.PI * 48; // r=48
+    const offset = circumference - (pct / 100) * circumference;
+    requestAnimationFrame(() => {
+      ringProgress.style.transition = 'stroke-dashoffset 1s ease';
+      ringProgress.setAttribute('stroke-dasharray', circumference.toFixed(1));
+      ringProgress.style.strokeDashoffset = offset.toFixed(1);
+    });
+  }
+
+  // ---- Photo upload preview + remove ----
+  const photoInput = document.getElementById('photo');
+  const avatarImg = document.getElementById('avatarPreviewImg');
+  const avatarDefault = document.getElementById('avatarDefault');
+  const removePhotoBtn = document.getElementById('removePhotoBtn');
+  const removePhotoFlag = document.getElementById('removePhotoFlag');
+
+  if (photoInput) {
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files && photoInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (avatarImg) {
+          avatarImg.src = e.target.result;
+          avatarImg.style.display = 'block';
+        }
+        if (avatarDefault) avatarDefault.style.display = 'none';
+        removePhotoFlag.value = '0';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (removePhotoBtn) {
+    removePhotoBtn.addEventListener('click', () => {
+      if (photoInput) photoInput.value = '';
+      if (avatarImg) { avatarImg.src = ''; avatarImg.style.display = 'none'; }
+      if (avatarDefault) avatarDefault.style.display = 'flex';
+      removePhotoFlag.value = '1';
+    });
+  }
+
+</script>
+
+</body>
+</html>

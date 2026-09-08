@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Job Search — SmartApply</title>
+<meta name="theme-color" content="#6C4CE0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --purple-700:#4d33b0; --purple-600:#6c4ce0; --purple-500:#8b6ef5; --purple-100:#ece6ff;
+    --blue-400:#4fd1ff; --white:#fff; --ink:#1a1530; --ink-soft:#59527a; --ink-faint:#8a83a8;
+    --border:#e6e4f2; --radius-md:18px; --radius-lg:28px; --radius-pill:999px;
+    --shadow-md:0 12px 32px rgba(76,45,168,.14);
+    --gradient-brand:linear-gradient(135deg,var(--purple-600) 0%,var(--blue-400) 100%);
+    --font-display:"Sora",sans-serif; --font-body:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:var(--font-body); color:var(--ink); line-height:1.6;
+    background:
+      radial-gradient(circle at 15% 10%, #efe9ff 0%, transparent 45%),
+      radial-gradient(circle at 85% 0%, #e2f7ff 0%, transparent 40%),
+      linear-gradient(180deg,#fbfaff 0%,#f5f3ff 100%);
+    min-height:100vh;
+  }
+  a{text-decoration:none;color:inherit;}
+  h1,h2{font-family:var(--font-display);color:var(--ink);font-weight:700;}
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px clamp(20px,5vw,56px); position:sticky; top:0; z-index:10;
+    background:rgba(251,250,255,.75); backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(108,76,224,.1);
+  }
+  .logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:1.1rem;}
+  .logo-mark{display:inline-flex;width:26px;height:26px;border-radius:8px;background:var(--gradient-brand);align-items:center;justify-content:center;}
+  .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;color:var(--purple-600);padding:9px 18px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,76,224,.3);}
+
+  .page-shell{max-width:900px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 80px;}
+
+  h1{font-size:clamp(1.5rem,3vw,1.9rem);margin-bottom:4px;}
+  p.subtitle{color:var(--ink-soft);margin-bottom:26px;}
+
+  .search-card{
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:22px 24px; margin-bottom:26px; box-shadow:0 4px 18px rgba(76,45,168,.06);
+  }
+  form.search-form{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;}
+  .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:180px;}
+  .field label{font-size:.8rem; color:var(--ink-faint); font-weight:600;}
+  .field input{padding:11px 14px; border-radius:10px; border:1.5px solid var(--border); font-size:.92rem;}
+  .field input:focus{outline:none; border-color:var(--purple-500);}
+  .btn-search{
+    background:var(--gradient-brand); color:#fff; border:none; border-radius:var(--radius-pill);
+    padding:12px 26px; font-weight:700; font-size:.9rem; cursor:pointer;
+  }
+
+  .error-banner{background:rgba(229,72,77,.08); color:#b3312f; border:1px solid rgba(229,72,77,.22);
+    border-radius:14px; padding:14px 16px; font-size:.88rem; margin-bottom:20px;}
+
+  .result-count{font-size:.85rem; color:var(--ink-faint); margin-bottom:14px;}
+
+  .job-card{
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:20px 22px; margin-bottom:14px; box-shadow:0 4px 18px rgba(76,45,168,.05);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .job-card:hover{transform:translateY(-2px); box-shadow:var(--shadow-md);}
+  .job-title{font-size:1.02rem; font-weight:700; margin-bottom:4px;}
+  .job-company{color:var(--purple-600); font-weight:600; font-size:.88rem; margin-bottom:8px;}
+  .job-meta{display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:var(--ink-faint); margin-bottom:10px;}
+  .job-desc{font-size:.88rem; color:var(--ink-soft); margin-bottom:14px;}
+  .btn-apply{
+    display:inline-flex; align-items:center; gap:6px; background:var(--purple-100); color:var(--purple-600);
+    font-weight:700; font-size:.85rem; padding:9px 18px; border-radius:var(--radius-pill);
+  }
+  .btn-apply:hover{background:var(--purple-500); color:#fff;}
+
+  .empty-state{text-align:center; padding:50px 0; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="{{ url_for('dashboard') }}" class="logo">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#fff"/>
+      </svg>
+    </span>
+    SmartApply
+  </a>
+  <a href="{{ url_for('dashboard') }}" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</header>
+
+<main class="page-shell">
+  <h1>Smart Job Search</h1>
+  <p class="subtitle">Search real, live job listings and apply directly on the source site.</p>
+
+  <div class="search-card">
+    <form class="search-form" method="GET" action="{{ url_for('job_search.job_search') }}">
+      <div class="field">
+        <label for="what">Job title or keyword</label>
+        <input type="text" id="what" name="what" value="{{ query }}" placeholder="e.g. Python Developer">
+      </div>
+      <div class="field">
+        <label for="where">Location</label>
+        <input type="text" id="where" name="where" value="{{ location }}" placeholder="e.g. Hyderabad">
+      </div>
+      <button type="submit" class="btn-search">Search</button>
+    </form>
+  </div>
+
+  {% if error %}
+  <div class="error-banner">{{ error }}</div>
+  {% endif %}
+
+  {% if searched and not error %}
+    <p class="result-count">{{ jobs|length }} result{{ '' if jobs|length == 1 else 's' }} found</p>
+
+    {% if jobs %}
+      {% for job in jobs %}
+      <div class="job-card">
+        <div class="job-title">{{ job.title }}</div>
+        <div class="job-company">{{ job.company }}</div>
+        <div class="job-meta">
+          {% if job.location %}<span>📍 {{ job.location }}</span>{% endif %}
+          {% if job.salary_min and job.salary_max %}<span>💰 {{ job.salary_min|round|int }} – {{ job.salary_max|round|int }}</span>{% endif %}
+          {% if job.created %}<span>🗓️ {{ job.created }}</span>{% endif %}
+        </div>
+        {% if job.description %}<div class="job-desc">{{ job.description }}…</div>{% endif %}
+        <a href="{{ job.apply_url }}" target="_blank" rel="noopener" class="btn-apply">
+          View & Apply
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">No results for that search — try a different keyword or location.</div>
+    {% endif %}
+  {% elif not error %}
+    <div class="empty-state">Search above to find live job openings.</div>
+  {% endif %}
+</main>
+
+</body>
+</html>

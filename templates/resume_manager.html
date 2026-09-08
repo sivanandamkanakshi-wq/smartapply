@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume Manager — SmartApply</title>
+<meta name="theme-color" content="#6C63FF" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<style>
+  :root{
+    --primary:#6C63FF;
+    --secondary:#8B5CF6;
+    --accent:#4F46E5;
+    --bg:#F6F8FF;
+    --card:#FFFFFF;
+    --text:#111827;
+    --text-soft:#5B6178;
+    --text-faint:#9AA0B4;
+    --border:#E5E7EB;
+    --danger:#E5484D;
+    --success:#16A34A;
+    --gradient-brand:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+    --gradient-soft:linear-gradient(135deg,rgba(108,99,255,.12) 0%,rgba(79,70,229,.08) 100%);
+    --radius-card:24px;
+    --radius-field:16px;
+    --radius-pill:999px;
+    --shadow-card:0 20px 50px -12px rgba(76,45,168,.14);
+    --shadow-card-hover:0 28px 64px -12px rgba(76,45,168,.22);
+    --shadow-btn:0 14px 34px -8px rgba(108,99,255,.55);
+    --font:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  h1,h2,h3{font-family:var(--font);color:var(--text);font-weight:700;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px;}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+  /* ---------- Ambient background ---------- */
+  .bg-mesh{position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(ellipse 900px 600px at 8% -5%, rgba(108,99,255,.14), transparent 60%),
+    radial-gradient(ellipse 800px 700px at 100% 10%, rgba(139,92,246,.12), transparent 55%),
+    radial-gradient(ellipse 700px 600px at 20% 100%, rgba(79,70,229,.09), transparent 55%),
+    var(--bg);}
+  .blob{position:fixed;border-radius:50%;filter:blur(80px);z-index:-1;opacity:.5;animation:float 22s ease-in-out infinite;}
+  .blob-1{width:420px;height:420px;background:linear-gradient(135deg,var(--primary),var(--secondary));top:-120px;right:-100px;animation-delay:0s;}
+  .blob-2{width:360px;height:360px;background:linear-gradient(135deg,var(--secondary),var(--accent));bottom:-140px;left:-120px;animation-delay:-8s;}
+  .blob-3{width:260px;height:260px;background:linear-gradient(135deg,var(--accent),var(--primary));top:45%;right:8%;opacity:.25;animation-delay:-14s;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-24px,30px) scale(1.06);}}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px clamp(18px,4vw,40px);position:sticky;top:0;z-index:40;
+    background:rgba(246,248,255,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid rgba(229,231,235,.7);
+  }
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem;letter-spacing:-.01em;}
+  .logo-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--gradient-brand);box-shadow:0 6px 16px -4px rgba(108,99,255,.6);color:#fff;}
+  .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;color:var(--primary);padding:9px 18px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,99,255,.25);background:#fff;transition:background .2s,transform .2s;}
+  .btn-back:hover{background:var(--gradient-soft);transform:translateY(-1px);}
+
+  /* ---------- Page shell ---------- */
+  .page-shell{max-width:1080px;margin:0 auto;padding:28px clamp(16px,3vw,36px) 100px;}
+
+  .page-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px;
+  }
+  .page-head-left h1{font-size:clamp(1.5rem,2.6vw,1.9rem);display:flex;align-items:center;gap:12px;letter-spacing:-.02em;}
+  .badge-count{font-size:.68rem;font-weight:700;letter-spacing:.03em;color:var(--accent);background:var(--gradient-soft);padding:5px 12px;border-radius:var(--radius-pill);border:1px solid rgba(108,99,255,.2);}
+  .page-head-left p{color:var(--text-soft);font-size:.9rem;margin-top:6px;}
+
+  .flash-stack{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+  .flash-message{font-size:.85rem;font-weight:500;padding:13px 16px;border-radius:14px;background:rgba(22,163,74,.08);color:#15803d;border:1px solid rgba(22,163,74,.22);display:flex;align-items:center;gap:8px;}
+
+  /* ---------- Card shell reused from Profile ---------- */
+  .s-card{
+    background:rgba(255,255,255,.86);backdrop-filter:blur(10px);
+    border:1px solid rgba(229,231,235,.9);border-radius:var(--radius-card);
+    padding:32px clamp(18px,3vw,36px);margin-bottom:22px;box-shadow:var(--shadow-card);
+    opacity:0;transform:translateY(14px);animation:cardIn .6s ease forwards;
+  }
+  @keyframes cardIn{to{opacity:1;transform:translateY(0);}}
+
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .field-group{display:flex;flex-direction:column;gap:7px;}
+  .field-group label{font-size:.82rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;}
+  .field-group .optional{font-weight:400;color:var(--text-faint);}
+
+  .subsection{margin-bottom:0;}
+  .subsection h3{font-size:.86rem;font-weight:700;color:var(--accent);margin-bottom:14px;padding-bottom:10px;border-bottom:1.5px dashed rgba(108,99,255,.25);display:flex;align-items:center;gap:8px;}
+
+  .upload-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-field);background:#fff;flex-wrap:wrap;transition:border-color .2s;}
+  .upload-row:hover{border-color:rgba(108,99,255,.4);}
+  .upload-row input[type=file]{font-size:.8rem;max-width:220px;color:var(--text-soft);}
+  .upload-current{font-size:.76rem;color:var(--success);font-weight:700;display:inline-flex;align-items:center;gap:4px;}
+  .upload-current svg{width:13px;height:13px;}
+
+  .btn-add{display:inline-flex;align-items:center;gap:7px;font-size:.85rem;font-weight:700;color:var(--primary);padding:12px 20px;border-radius:var(--radius-pill);border:1.5px dashed rgba(108,99,255,.4);transition:background .2s,transform .2s;}
+  .btn-add:hover{background:var(--gradient-soft);transform:translateY(-1px);}
+  .btn-add svg{width:15px;height:15px;}
+
+  .section-hint{font-size:.82rem;color:var(--text-faint);margin-top:-10px;margin-bottom:18px;}
+
+  /* ---------- Floating save button ---------- */
+  .save-fab{
+    position:fixed;bottom:26px;right:26px;z-index:50;
+    display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.92rem;
+    padding:16px 28px;border-radius:var(--radius-pill);color:#fff;
+    background:linear-gradient(135deg,var(--primary),var(--accent));background-size:160% 160%;
+    box-shadow:var(--shadow-btn);transition:transform .25s,box-shadow .25s,background-position .6s;
+  }
+  .save-fab:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 20px 44px -10px rgba(108,99,255,.7);background-position:100% 0;}
+  .save-fab:active{transform:translateY(-1px) scale(.98);}
+  .save-fab svg{width:17px;height:17px;}
+
+  .ring-wrap{position:relative;width:112px;height:112px;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-pct b{font-size:1.15rem;font-weight:800;color:var(--accent);}
+  .ring-pct span{font-size:.6rem;color:var(--text-faint);font-weight:600;letter-spacing:.02em;}
+
+  /* ================= RESUME MANAGER ================= */
+  .resume-hero{
+    display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:26px;
+    background:linear-gradient(135deg,#F8F7FF,#EEF2FF);
+    border:1px solid rgba(229,231,235,.9);border-radius:20px;padding:24px;margin-bottom:20px;
+  }
+  .resume-hero-left{display:flex;flex-direction:column;gap:16px;}
+  .resume-preview-frame{
+    position:relative;width:100%;aspect-ratio:3/3.6;border-radius:18px;overflow:hidden;
+    background:#fff;border:1px solid var(--border);box-shadow:0 16px 36px -14px rgba(76,45,168,.22);
+    cursor:pointer;transition:transform .3s,box-shadow .3s;
+  }
+  .resume-preview-frame:hover{transform:translateY(-3px);box-shadow:0 22px 48px -14px rgba(76,45,168,.3);}
+  .resume-preview-object{width:100%;height:100%;pointer-events:none;border:none;}
+  .resume-illustration-fallback,.resume-illustration-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .resume-illustration-fallback svg{width:70%;}
+  .resume-illustration-empty svg{width:82%;}
+  .resume-preview-overlay{
+    position:absolute;inset:0;background:rgba(17,24,39,.55);color:#fff;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s;
+  }
+  .resume-preview-overlay svg{width:26px;height:26px;}
+  .resume-preview-frame:hover .resume-preview-overlay,.resume-preview-frame:focus-visible .resume-preview-overlay{opacity:1;}
+
+  .resume-meta{display:flex;flex-direction:column;gap:9px;}
+  .resume-meta-name{font-weight:700;font-size:.98rem;color:var(--text);word-break:break-word;}
+  .resume-meta-row{display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--text-faint);border-bottom:1px dashed var(--border);padding-bottom:7px;}
+  .resume-meta-row b{color:var(--text-soft);font-weight:600;}
+
+  .resume-hero-right{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;align-content:start;}
+  .stat-card{
+    background:#fff;border:1px solid var(--border);border-radius:18px;padding:18px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+    transition:transform .25s,box-shadow .25s,border-color .25s;
+  }
+  .stat-card:hover{transform:translateY(-3px);box-shadow:0 14px 30px -10px rgba(76,45,168,.2);border-color:rgba(108,99,255,.3);}
+  .stat-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:2px;}
+  .stat-icon svg{width:19px;height:19px;}
+  .grad-purple{background:linear-gradient(135deg,#6C63FF,#8B5CF6);}
+  .grad-blue{background:linear-gradient(135deg,#4F46E5,#6C63FF);}
+  .grad-indigo{background:linear-gradient(135deg,#8B5CF6,#4F46E5);}
+  .grad-green{background:linear-gradient(135deg,#22C55E,#16A34A);}
+  .grad-gray{background:linear-gradient(135deg,#C4C7D4,#9AA0B4);}
+  .stat-title{font-weight:700;font-size:.86rem;color:var(--text);}
+  .stat-sub{font-size:.78rem;color:var(--text-soft);}
+  .stat-footnote{font-size:.68rem;color:var(--text-faint);}
+  .ring-wrap.sm{width:72px;height:72px;position:relative;margin:2px 0;}
+  .ring-wrap.sm svg{transform:rotate(-90deg);}
+  .ring-pct.sm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  .ring-pct.sm b{font-size:.86rem;font-weight:800;color:var(--accent);}
+
+  .resume-dropzone{
+    position:relative;border:2px dashed rgba(108,99,255,.35);border-radius:20px;
+    background:rgba(108,99,255,.03);padding:34px 20px;text-align:center;margin-bottom:8px;
+    transition:border-color .25s,background .25s;
+  }
+  .resume-dropzone.dragover{border-color:var(--primary);background:var(--gradient-soft);}
+  .dropzone-icon{width:44px;height:44px;color:var(--primary);margin-bottom:10px;}
+  .dropzone-title{font-weight:700;font-size:.98rem;color:var(--text);}
+  .dropzone-or{font-size:.72rem;color:var(--text-faint);margin:8px 0;letter-spacing:.06em;}
+  .dropzone-hint{font-size:.76rem;color:var(--text-faint);margin-top:10px;}
+  .dropzone-content{display:flex;flex-direction:column;align-items:center;}
+  .dropzone-progress{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:340px;margin:0 auto;}
+  .dropzone-file-icon{width:34px;height:34px;color:var(--primary);}
+  .progress-file-name{font-weight:600;font-size:.85rem;color:var(--text);}
+  .progress-track{width:100%;height:8px;border-radius:99px;background:#E9E7FF;overflow:hidden;}
+  .progress-track.lg{height:10px;}
+  .progress-fill{height:100%;width:0%;background:var(--gradient-brand);border-radius:99px;transition:width .35s ease;}
+  .progress-status{font-size:.78rem;color:var(--text-soft);font-weight:600;}
+  .progress-status.success{color:var(--success);}
+
+  .resume-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px;}
+  .btn-pill{
+    display:inline-flex;align-items:center;gap:8px;font-size:.84rem;font-weight:700;color:#fff;
+    padding:12px 20px;border-radius:var(--radius-pill);background:var(--gradient-brand);
+    box-shadow:0 10px 24px -8px rgba(108,99,255,.5);transition:transform .2s,box-shadow .2s,opacity .2s;
+  }
+  .btn-pill svg{width:15px;height:15px;}
+  .btn-pill:hover{transform:translateY(-2px);box-shadow:0 16px 32px -8px rgba(108,99,255,.6);}
+  .btn-pill.danger{background:linear-gradient(135deg,#F87171,#E5484D);box-shadow:0 10px 24px -8px rgba(229,72,77,.45);}
+  .btn-pill[disabled],.btn-pill[aria-disabled="true"]{opacity:.45;pointer-events:none;box-shadow:none;transform:none;}
+
+  .resume-subcard{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:18px;}
+  .resume-subcard h3{font-size:.96rem;margin-bottom:4px;}
+  .subcard-desc{font-size:.8rem;color:var(--text-faint);margin-bottom:14px;}
+  .skills-chip-row{display:flex;flex-wrap:wrap;gap:9px;}
+  .skill-chip{
+    display:inline-flex;align-items:center;padding:8px 15px;border-radius:var(--radius-pill);
+    background:var(--gradient-soft);color:var(--accent);font-size:.8rem;font-weight:600;
+    border:1px solid rgba(108,99,255,.18);transition:transform .2s,background .2s;
+  }
+  .skill-chip:hover{transform:translateY(-2px);background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(79,70,229,.14));}
+
+  .readiness-checklist{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:18px;}
+  .readiness-checklist li{display:flex;align-items:center;gap:9px;font-size:.84rem;color:var(--text-faint);font-weight:600;}
+  .readiness-checklist li svg{width:16px;height:16px;flex-shrink:0;border-radius:50%;padding:2px;background:#F1F2F6;color:transparent;transition:all .2s;}
+  .readiness-checklist li.done{color:var(--text);}
+  .readiness-checklist li.done svg{background:var(--success);color:#fff;}
+  .readiness-bar-row{display:flex;align-items:center;gap:14px;}
+  .readiness-bar-row .progress-track{flex:1;}
+  .readiness-pct{font-size:.82rem;font-weight:700;color:var(--accent);white-space:nowrap;}
+
+  /* ---- Full-screen resume modal ---- */
+  .resume-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;}
+  .resume-modal.open{display:flex;}
+  .resume-modal-backdrop{position:absolute;inset:0;background:rgba(17,24,39,.72);backdrop-filter:blur(4px);}
+  .resume-modal-panel{position:relative;width:min(900px,92vw);height:min(88vh,1100px);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;}
+  .resume-modal-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--text);}
+  .resume-modal-controls{display:flex;align-items:center;gap:10px;}
+  .resume-modal-controls button{width:32px;height:32px;border-radius:10px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-soft);transition:background .2s;}
+  .resume-modal-controls button:hover{background:var(--gradient-soft);}
+  .resume-modal-controls button svg{width:15px;height:15px;}
+  .resume-modal-controls span{font-size:.78rem;font-weight:700;color:var(--text-faint);min-width:38px;text-align:center;}
+  .resume-modal-body{flex:1;background:#F1F2F6;}
+  .resume-modal-body iframe{width:100%;height:100%;border:none;}
+
+  @media (max-width:860px){
+    .resume-hero{grid-template-columns:1fr;}
+    .resume-hero-right{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .save-fab{right:16px;bottom:16px;padding:14px 20px;font-size:.85rem;}
+  }
+  @media (max-width:520px){
+    .resume-hero-right{grid-template-columns:1fr;}
+    .resume-actions{flex-direction:column;}
+    .btn-pill{width:100%;justify-content:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true"></div>
+<div class="blob blob-1" aria-hidden="true"></div>
+<div class="blob blob-2" aria-hidden="true"></div>
+<div class="blob blob-3" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="{{ url_for('dashboard') }}" class="logo">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg>
+    </span>
+    SmartApply
+  </a>
+  <a href="{{ url_for('dashboard') }}" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</header>
+
+<div class="page-shell">
+
+  <div class="page-head">
+    <div class="page-head-left">
+      <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Resume Manager
+      </h1>
+      <p>Upload, preview, and manage the resume SmartApply uses across your job applications.</p>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="flash-stack">
+    {% for message in messages %}
+    <div class="flash-message">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% set all_skills = (data.technical_skills or []) + (data.soft_skills or []) %}
+  {% set projects_count = (data.projects or [])|selectattr('title')|list|length %}
+  {% set certifications_count = (data.certifications or [])|selectattr('name')|list|length %}
+  {% set experience_present = (data.experience_type == 'Experienced') or (data.internship.company) %}
+  {% set edu_added = (data.education.graduation.college or data.education.ssc.school) %}
+  {% set lang_added = (data.languages or [])|length > 0 %}
+  {% set resume_uploaded = data.documents.resume_path %}
+  {% set checked_count = (1 if resume_uploaded else 0) + (1 if all_skills|length>0 else 0) + (1 if edu_added else 0) + (1 if experience_present else 0) + (1 if certifications_count>0 else 0) + (1 if lang_added else 0) + (1 if projects_count>0 else 0) %}
+  {% set readiness_pct = (checked_count / 7 * 100)|round|int %}
+  {% set resume_url = url_for('static', filename=data.documents.resume_path) if resume_uploaded else '' %}
+  {% set resume_filename = data.documents.resume_path.split('/')[-1] if resume_uploaded else '' %}
+
+  <form action="{{ url_for('resume_manager') }}" method="POST" enctype="multipart/form-data" novalidate id="resumeForm">
+
+    <section class="s-card" id="section-documents">
+
+      <!-- ===== Resume manager hero ===== -->
+      <div class="resume-hero" id="resumeHero" data-has-resume="{{ '1' if resume_uploaded else '0' }}">
+        <div class="resume-hero-left">
+          <div class="resume-preview-frame" id="resumePreviewFrame" tabindex="0" role="button" aria-label="Open resume preview">
+            {% if resume_uploaded %}
+              <object data="{{ resume_url }}#toolbar=0&navpanes=0&view=FitH" type="application/pdf" class="resume-preview-object" id="resumePreviewObject">
+                <div class="resume-illustration-fallback">
+                  <svg viewBox="0 0 120 140" fill="none"><rect x="10" y="6" width="100" height="128" rx="10" fill="#F4F2FF" stroke="#8B5CF6" stroke-width="2.5"/><path d="M34 40h52M34 58h52M34 76h34" stroke="#6C63FF" stroke-width="4" stroke-linecap="round"/><circle cx="86" cy="104" r="18" fill="#6C63FF"/><path d="M79 104l5 5 9-10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </object>
+              <div class="resume-preview-overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                <span>View full screen</span>
+              </div>
+            {% else %}
+              <div class="resume-illustration-empty">
+                <svg viewBox="0 0 140 140" fill="none"><circle cx="70" cy="70" r="66" fill="#EEF2FF"/><rect x="42" y="34" width="56" height="72" rx="8" fill="#fff" stroke="#8B5CF6" stroke-width="2.5"/><path d="M54 56h32M54 70h32M54 84h20" stroke="#A5A0FF" stroke-width="3.5" stroke-linecap="round"/><circle cx="94" cy="100" r="16" fill="#6C63FF"/><path d="M94 92v16M87 100h14" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="resume-meta">
+            <div class="resume-meta-name" id="resumeMetaName">{{ resume_filename if resume_uploaded else 'No resume uploaded yet' }}</div>
+            <div class="resume-meta-row"><span>File size</span><b id="resumeMetaSize">{{ '—' if not resume_uploaded }}</b></div>
+            <div class="resume-meta-row"><span>Upload date</span><b id="resumeMetaUploaded">{{ '—' if not resume_uploaded }}</b></div>
+            <div class="resume-meta-row"><span>Last updated</span><b id="resumeMetaModified">{{ '—' if not resume_uploaded }}</b></div>
+            <div class="resume-meta-row"><span>Supported format</span><b>PDF</b></div>
+            <div class="resume-meta-row"><span>Maximum size</span><b>5&nbsp;MB</b></div>
+          </div>
+        </div>
+
+        <div class="resume-hero-right">
+          <div class="stat-card">
+            <div class="stat-icon grad-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/></svg></div>
+            <div class="ring-wrap sm" id="atsRingWrap" data-pct="{{ ats_score }}">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="30" fill="none" stroke="#E9E7FF" stroke-width="7"/>
+                <circle id="atsRingProgress" cx="36" cy="36" r="30" fill="none" stroke="url(#ringGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#6C63FF"/>
+                    <stop offset="100%" stop-color="#4F46E5"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="ring-pct sm"><b>{{ ats_score }}%</b></div>
+            </div>
+            <div class="stat-title">ATS Compatibility</div>
+            <div class="stat-sub">{{ 'Excellent Resume' if ats_score >= 80 else ('Good Progress' if ats_score >= 50 else 'Needs More Detail') }}</div>
+            <div class="stat-footnote">
+              {% if resume_uploaded and ats_score == 0 %}
+                Resume text could not be parsed. Use a searchable PDF for ATS scoring.
+              {% else %}
+                Estimated from your profile
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon {{ 'grad-green' if resume_uploaded else 'grad-gray' }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <div class="stat-title">Resume Status</div>
+            <div class="stat-sub">{{ 'Ready for Applications' if resume_uploaded else 'Not Uploaded' }}</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon grad-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div class="stat-title">Applications</div>
+            <div class="stat-sub">Coming soon</div>
+            <div class="stat-footnote">Tracking arrives with Application Tracker</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon grad-indigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2l6 6v14H4V2z"/><path d="M14 2v6h6"/></svg></div>
+            <div class="stat-title">Skills</div>
+            <div class="stat-sub">{{ all_skills|length }} Skills Added</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Drag & drop upload area ===== -->
+      <div class="resume-dropzone" id="resumeDropzone">
+        <input type="file" name="resume" id="resumeFileInput" accept=".pdf" hidden>
+        <input type="hidden" name="remove_resume" id="removeResumeFlag" value="0">
+        <div class="dropzone-content" id="dropzoneContent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="dropzone-icon"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <p class="dropzone-title">Drag &amp; Drop Resume Here</p>
+          <p class="dropzone-or">OR</p>
+          <label for="resumeFileInput" class="btn-add" style="cursor:pointer;">Browse Files</label>
+          <p class="dropzone-hint">Supported: PDF · Max 5&nbsp;MB</p>
+        </div>
+        <div class="dropzone-progress" id="dropzoneProgress" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropzone-file-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <div class="progress-file-name" id="progressFileName">filename.pdf</div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-status" id="progressStatus">Staging file…</div>
+        </div>
+      </div>
+      <p class="section-hint">Selecting a file stages it here — it uploads when you click <b>Save Resume</b> below.</p>
+
+      <!-- ===== Action buttons ===== -->
+      <div class="resume-actions">
+        <button type="button" class="btn-pill" id="btnPreviewResume" {{ 'disabled' if not resume_uploaded }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview Resume
+        </button>
+        <a class="btn-pill" id="btnDownloadResume" href="{{ resume_url }}" download {{ 'aria-disabled=true tabindex=-1' if not resume_uploaded }} {% if not resume_uploaded %}onclick="return false;"{% endif %}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+          Download
+        </a>
+        <label class="btn-pill" for="resumeFileInput" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>
+          Replace Resume
+        </label>
+        <button type="button" class="btn-pill danger" id="btnDeleteResume" {{ 'disabled' if not resume_uploaded }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+          Delete Resume
+        </button>
+      </div>
+
+      <!-- ===== Skills Detected ===== -->
+      <div class="resume-subcard">
+        <h3>Skills Detected</h3>
+        <p class="subcard-desc">Pulled straight from the Skills section of your profile.</p>
+        {% if all_skills|length > 0 %}
+        <div class="skills-chip-row">
+          {% for skill in all_skills %}
+          <span class="skill-chip">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="section-hint" style="margin-top:4px;">No skills added yet — fill in the Skills section of your profile and they'll show up here.</p>
+        {% endif %}
+      </div>
+
+      <!-- ===== Resume Readiness ===== -->
+      <div class="resume-subcard">
+        <h3>Resume Readiness</h3>
+        <ul class="readiness-checklist">
+          <li class="{{ 'done' if resume_uploaded }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Resume Uploaded</li>
+          <li class="{{ 'done' if all_skills|length > 0 }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Skills Added</li>
+          <li class="{{ 'done' if edu_added }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Education Added</li>
+          <li class="{{ 'done' if experience_present }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Experience Added</li>
+          <li class="{{ 'done' if certifications_count > 0 }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Certifications Added</li>
+          <li class="{{ 'done' if lang_added }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Languages Added</li>
+          <li class="{{ 'done' if projects_count > 0 }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Projects Added</li>
+        </ul>
+        <div class="readiness-bar-row">
+          <div class="progress-track lg"><div class="progress-fill" style="width:{{ readiness_pct }}%;" id="readinessFill"></div></div>
+          <span class="readiness-pct">{{ readiness_pct }}% Resume Ready</span>
+        </div>
+      </div>
+
+      <!-- ===== Other documents ===== -->
+      <div class="subsection">
+        <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Other Documents <span class="optional">(optional)</span></h3>
+        <div class="field-grid">
+          <div class="field-group">
+            <label>Aadhaar Card <span class="optional">(optional)</span></label>
+            <div class="upload-row">
+              <input type="file" name="aadhaar_doc" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.aadhaar_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label>PAN Card <span class="optional">(optional)</span></label>
+            <div class="upload-row">
+              <input type="file" name="pan_doc" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.pan_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label>SSC Certificate</label>
+            <div class="upload-row">
+              <input type="file" name="ssc_cert" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.ssc_cert_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Intermediate Certificate</label>
+            <div class="upload-row">
+              <input type="file" name="inter_cert" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.inter_cert_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Degree Certificate</label>
+            <div class="upload-row">
+              <input type="file" name="degree_cert" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.degree_cert_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Experience Certificate <span class="optional">(if any)</span></label>
+            <div class="upload-row">
+              <input type="file" name="experience_cert" accept=".pdf,.png,.jpg,.jpeg">
+              {% if data.documents.experience_cert_path %}<span class="upload-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Uploaded</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <button type="submit" class="save-fab">
+      Save Resume
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </form>
+
+  <!-- ===== Full-screen resume viewer modal ===== -->
+  <div class="resume-modal" id="resumeModal" role="dialog" aria-modal="true" aria-label="Resume preview">
+    <div class="resume-modal-backdrop" id="resumeModalBackdrop"></div>
+    <div class="resume-modal-panel">
+      <div class="resume-modal-bar">
+        <span>{{ resume_filename if resume_uploaded else 'Resume preview' }}</span>
+        <div class="resume-modal-controls">
+          <button type="button" id="zoomOutBtn" aria-label="Zoom out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3M8 11h6"/></svg></button>
+          <span id="zoomLevel">100%</span>
+          <button type="button" id="zoomInBtn" aria-label="Zoom in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></button>
+          <button type="button" id="resumeModalClose" aria-label="Close preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div class="resume-modal-body">
+        <iframe id="resumeModalFrame" title="Resume full preview"></iframe>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- Lucide icons ----
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.lucide) lucide.createIcons();
+  });
+  window.addEventListener('load', () => {
+    if (window.lucide) lucide.createIcons();
+  });
+
+  // ---- Card fade-in ----
+  document.querySelectorAll('.s-card').forEach((card, i) => {
+    card.style.animationDelay = (i * 0.04) + 's';
+  });
+
+  // ---- ATS ring animation ----
+  const atsRingWrap = document.getElementById('atsRingWrap');
+  const atsRingProgress = document.getElementById('atsRingProgress');
+  if (atsRingWrap && atsRingProgress) {
+    const pct = Math.max(0, Math.min(100, parseInt(atsRingWrap.dataset.pct || '0', 10)));
+    const circumference = 2 * Math.PI * 30; // r=30
+    const offset = circumference - (pct / 100) * circumference;
+    requestAnimationFrame(() => {
+      atsRingProgress.style.transition = 'stroke-dashoffset 1s ease';
+      atsRingProgress.setAttribute('stroke-dasharray', circumference.toFixed(1));
+      atsRingProgress.style.strokeDashoffset = offset.toFixed(1);
+    });
+  }
+
+  // ---- Resume metadata via HEAD request (size / upload / last-modified) ----
+  const resumeHero = document.getElementById('resumeHero');
+  if (resumeHero && resumeHero.dataset.hasResume === '1') {
+    const resumeUrl = document.getElementById('btnDownloadResume')?.getAttribute('href');
+    if (resumeUrl) {
+      fetch(resumeUrl, { method: 'HEAD' }).then(res => {
+        const sizeBytes = parseInt(res.headers.get('content-length') || '0', 10);
+        const lastModified = res.headers.get('last-modified');
+        const sizeEl = document.getElementById('resumeMetaSize');
+        const modifiedEl = document.getElementById('resumeMetaModified');
+        const uploadedEl = document.getElementById('resumeMetaUploaded');
+        if (sizeEl && sizeBytes) {
+          sizeEl.textContent = sizeBytes > 1024 * 1024
+            ? (sizeBytes / (1024 * 1024)).toFixed(2) + ' MB'
+            : Math.round(sizeBytes / 1024) + ' KB';
+        }
+        if (lastModified) {
+          const d = new Date(lastModified);
+          const formatted = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          if (modifiedEl) modifiedEl.textContent = formatted;
+          if (uploadedEl) uploadedEl.textContent = formatted;
+        }
+      }).catch(() => { /* metadata is best-effort; leave placeholders as-is */ });
+    }
+  }
+
+  // ---- Resume dropzone: stage a file for the normal form submit ----
+  const resumeDropzone = document.getElementById('resumeDropzone');
+  const resumeFileInput = document.getElementById('resumeFileInput');
+  const dropzoneContent = document.getElementById('dropzoneContent');
+  const dropzoneProgress = document.getElementById('dropzoneProgress');
+  const progressFileName = document.getElementById('progressFileName');
+  const progressFill = document.getElementById('progressFill');
+  const progressStatus = document.getElementById('progressStatus');
+  const btnPreviewResume = document.getElementById('btnPreviewResume');
+  const btnDownloadResume = document.getElementById('btnDownloadResume');
+  const btnDeleteResume = document.getElementById('btnDeleteResume');
+  const resumeMetaName = document.getElementById('resumeMetaName');
+  const removeResumeFlag = document.getElementById('removeResumeFlag');
+
+  function stageResumeFile(file) {
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      progressStatus.textContent = 'Please choose a PDF file.';
+      progressStatus.classList.remove('success');
+      return;
+    }
+    dropzoneContent.hidden = true;
+    dropzoneProgress.hidden = false;
+    progressFileName.textContent = file.name;
+    progressFill.style.width = '0%';
+    progressStatus.textContent = 'Staging file…';
+    progressStatus.classList.remove('success');
+    if (resumeMetaName) resumeMetaName.textContent = file.name;
+    if (removeResumeFlag) removeResumeFlag.value = '0';
+
+    // Visual staging animation (the real upload happens on Save Resume submit).
+    let pct = 0;
+    const timer = setInterval(() => {
+      pct += 18 + Math.random() * 12;
+      if (pct >= 100) {
+        pct = 100;
+        clearInterval(timer);
+        progressFill.style.width = '100%';
+        progressStatus.textContent = '✓ Ready — click Save Resume to upload';
+        progressStatus.classList.add('success');
+      } else {
+        progressFill.style.width = pct + '%';
+      }
+    }, 140);
+
+    if (btnPreviewResume) btnPreviewResume.removeAttribute('disabled');
+    if (btnDeleteResume) btnDeleteResume.removeAttribute('disabled');
+  }
+
+  if (resumeFileInput) {
+    resumeFileInput.addEventListener('change', () => {
+      stageResumeFile(resumeFileInput.files && resumeFileInput.files[0]);
+    });
+  }
+
+  if (resumeDropzone) {
+    ['dragenter', 'dragover'].forEach(evt => {
+      resumeDropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        resumeDropzone.classList.add('dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      resumeDropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        resumeDropzone.classList.remove('dragover');
+      });
+    });
+    resumeDropzone.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file && resumeFileInput) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        resumeFileInput.files = dt.files;
+        stageResumeFile(file);
+      }
+    });
+  }
+
+  if (btnDeleteResume) {
+    btnDeleteResume.addEventListener('click', () => {
+      if (resumeFileInput) resumeFileInput.value = '';
+      if (removeResumeFlag) removeResumeFlag.value = '1';
+      dropzoneContent.hidden = false;
+      dropzoneProgress.hidden = true;
+      if (resumeMetaName) resumeMetaName.textContent = 'No resume uploaded yet';
+      btnDeleteResume.setAttribute('disabled', 'true');
+      if (btnPreviewResume) btnPreviewResume.setAttribute('disabled', 'true');
+      if (btnDownloadResume) btnDownloadResume.setAttribute('aria-disabled', 'true');
+    });
+  }
+
+  // ---- Full-screen resume modal with zoom ----
+  const resumeModal = document.getElementById('resumeModal');
+  const resumeModalFrame = document.getElementById('resumeModalFrame');
+  const resumeModalClose = document.getElementById('resumeModalClose');
+  const resumeModalBackdrop = document.getElementById('resumeModalBackdrop');
+  const resumePreviewFrame = document.getElementById('resumePreviewFrame');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const zoomLevel = document.getElementById('zoomLevel');
+  let currentZoom = 100;
+
+  function openResumeModal() {
+    if (!resumeHero || resumeHero.dataset.hasResume !== '1' || !btnDownloadResume) return;
+    const url = btnDownloadResume.getAttribute('href');
+    if (!url) return;
+    currentZoom = 100;
+    if (zoomLevel) zoomLevel.textContent = currentZoom + '%';
+    resumeModalFrame.src = url + '#zoom=' + currentZoom + '&toolbar=1';
+    resumeModal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeResumeModal() {
+    resumeModal.classList.remove('open');
+    resumeModalFrame.src = '';
+    document.body.style.overflow = '';
+  }
+
+  if (resumePreviewFrame) {
+    resumePreviewFrame.addEventListener('click', openResumeModal);
+    resumePreviewFrame.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openResumeModal(); }
+    });
+  }
+  if (btnPreviewResume) btnPreviewResume.addEventListener('click', openResumeModal);
+  if (resumeModalClose) resumeModalClose.addEventListener('click', closeResumeModal);
+  if (resumeModalBackdrop) resumeModalBackdrop.addEventListener('click', closeResumeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && resumeModal.classList.contains('open')) closeResumeModal();
+  });
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => {
+    currentZoom = Math.min(200, currentZoom + 25);
+    zoomLevel.textContent = currentZoom + '%';
+    const base = resumeModalFrame.src.split('#')[0];
+    resumeModalFrame.src = base + '#zoom=' + currentZoom + '&toolbar=1';
+  });
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => {
+    currentZoom = Math.max(50, currentZoom - 25);
+    zoomLevel.textContent = currentZoom + '%';
+    const base = resumeModalFrame.src.split('#')[0];
+    resumeModalFrame.src = base + '#zoom=' + currentZoom + '&toolbar=1';
+  });
+</script>
+
+</body>
+</html>

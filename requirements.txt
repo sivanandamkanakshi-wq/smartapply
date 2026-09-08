@@ -1,0 +1,7 @@
+Flask
+requests
+python-dotenv
+authlib
+gunicorn
+pypdf
+cryptography

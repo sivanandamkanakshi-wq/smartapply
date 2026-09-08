@@ -1,0 +1,57 @@
+{% extends "layout/base_app.html" %}
+
+{% block title %}{{ page_title }} — SmartApply{% endblock %}
+
+{% block content %}
+<div class="placeholder-page">
+  <div class="placeholder-card">
+    <span class="placeholder-icon">{{ page_icon }}</span>
+    <h2>{{ page_title }}</h2>
+    <p>{{ page_description }}</p>
+    <span class="placeholder-tag">Coming in Phase 2</span>
+  </div>
+</div>
+
+<style>
+  .placeholder-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+  }
+  .placeholder-card {
+    text-align: center;
+    max-width: 420px;
+    padding: 48px 40px;
+    background: var(--surface-strong);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(20px);
+  }
+  .placeholder-icon {
+    font-size: 2.6rem;
+    display: block;
+    margin-bottom: 14px;
+  }
+  .placeholder-card h2 {
+    margin-bottom: 10px;
+  }
+  .placeholder-card p {
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .placeholder-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--gradient-brand-soft);
+    color: var(--purple-700);
+  }
+</style>
+{% endblock %}

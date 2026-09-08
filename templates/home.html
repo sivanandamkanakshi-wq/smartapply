@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home — SmartApply</title>
+<meta name="theme-color" content="#6C4CE0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --purple-700:#4d33b0; --purple-600:#6c4ce0; --purple-500:#8b6ef5; --purple-100:#ece6ff;
+    --blue-400:#4fd1ff; --white:#fff; --ink:#1a1530; --ink-soft:#59527a; --ink-faint:#8a83a8;
+    --danger:#e5484d; --radius-sm:10px; --radius-md:18px; --radius-lg:28px; --radius-pill:999px;
+    --shadow-md:0 12px 32px rgba(76,45,168,.14); --shadow-lg:0 24px 60px rgba(76,45,168,.2);
+    --shadow-glow:0 0 0 1px rgba(255,255,255,.6), 0 20px 50px rgba(108,76,224,.25);
+    --gradient-brand:linear-gradient(135deg,var(--purple-600) 0%,var(--blue-400) 100%);
+    --gradient-aside:linear-gradient(155deg,var(--purple-700) 0%,var(--purple-600) 45%,#4a6de0 100%);
+    --font-display:"Sora",sans-serif; --font-body:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-body); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 10%, #efe9ff 0%, transparent 45%),
+      radial-gradient(circle at 85% 0%, #e2f7ff 0%, transparent 40%),
+      linear-gradient(180deg,#fbfaff 0%,#f5f3ff 100%);
+    min-height:100vh;
+  }
+  a{text-decoration:none;color:inherit;}
+  ul{list-style:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  h1,h2,h3{font-family:var(--font-display);color:var(--ink);line-height:1.15;font-weight:700;}
+  :focus-visible{outline:2px solid var(--purple-600);outline-offset:3px;border-radius:4px;}
+
+  .bg-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
+  .blur-circle{position:absolute;border-radius:50%;filter:blur(80px);opacity:.4;animation:drift 18s ease-in-out infinite alternate;}
+  .c-purple{width:480px;height:480px;background:var(--purple-500);top:-180px;left:-140px;}
+  .c-blue{width:420px;height:420px;background:var(--blue-400);bottom:-180px;right:-160px;animation-delay:3s;}
+  @keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(30px,40px) scale(1.08);}}
+
+  .fade-up{opacity:0;transform:translateY(20px);animation:fadeUp .6s ease forwards;}
+  .fade-up.delay-1{animation-delay:.08s;}
+  .fade-up.delay-2{animation-delay:.16s;}
+  .fade-up.delay-3{animation-delay:.24s;}
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+
+  /* Top bar */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px clamp(20px,5vw,56px); position:sticky; top:0; z-index:10;
+    background:rgba(251,250,255,.75); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(108,76,224,.1);
+  }
+  .logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:1.1rem;color:var(--ink);}
+  .logo-mark{display:inline-flex;width:26px;height:26px;border-radius:8px;background:var(--gradient-brand);align-items:center;justify-content:center;}
+  .topbar-right{display:flex;align-items:center;gap:14px;}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:var(--radius-pill);background:var(--white);box-shadow:0 2px 10px rgba(76,45,168,.08);border:1px solid rgba(108,76,224,.1);}
+  .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--gradient-brand);color:var(--white);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:.85rem;flex-shrink:0;}
+  .user-chip-name{font-size:.85rem;font-weight:600;color:var(--ink);}
+  .btn-logout{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:600;font-size:.85rem;color:var(--purple-600);border:1.5px solid rgba(108,76,224,.3);transition:background .25s,transform .25s,color .25s;}
+  .btn-logout:hover{background:var(--purple-100);transform:translateY(-1px);}
+
+  /* Main */
+  .page-shell{max-width:1080px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 80px;}
+
+  .hero-card{
+    position:relative;overflow:hidden;border-radius:var(--radius-lg);
+    background:var(--gradient-aside);color:var(--white);
+    padding:clamp(28px,4vw,44px); margin-bottom:28px;
+    box-shadow:var(--shadow-lg);
+  }
+  .hero-card::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.08);top:-100px;right:-80px;}
+  .hero-card::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);bottom:-90px;left:10%;}
+  .hero-eyebrow{position:relative;z-index:1;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:10px;}
+  .hero-title{position:relative;z-index:1;font-size:clamp(1.6rem,3.4vw,2.3rem);margin-bottom:10px;}
+  .hero-sub{position:relative;z-index:1;color:rgba(255,255,255,.85);max-width:480px;font-size:.98rem;}
+
+  .hero-progress{position:relative;z-index:1;margin-top:26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .progress-track{flex:1;min-width:180px;height:10px;border-radius:var(--radius-pill);background:rgba(255,255,255,.18);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:var(--radius-pill);background:linear-gradient(90deg,var(--blue-400),#fff);transition:width .8s cubic-bezier(.4,0,.2,1);}
+  .progress-label{font-size:.85rem;font-weight:600;color:rgba(255,255,255,.92);white-space:nowrap;}
+
+  .section-heading{font-size:1.15rem;margin:8px 0 16px;}
+
+  .action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:36px;}
+  .action-card{
+    position:relative;
+    background:rgba(255,255,255,.8); border:1px solid rgba(108,76,224,.1);
+    border-radius:var(--radius-md); padding:24px; backdrop-filter:blur(10px);
+    box-shadow:0 4px 18px rgba(76,45,168,.07); transition:transform .3s,box-shadow .3s,border-color .3s;
+  }
+  .action-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(108,76,224,.25);}
+  .action-card.is-locked{opacity:.72;}
+  .action-card.is-locked:hover{transform:none;box-shadow:0 4px 18px rgba(76,45,168,.07);border-color:rgba(108,76,224,.1);}
+  .action-icon{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;color:var(--white);margin-bottom:14px;font-size:1.15rem;}
+  .icon-orange{background:linear-gradient(135deg,#ffb648,#ff8a3d);}
+  .icon-purple{background:linear-gradient(135deg,#8b6ef5,#6c4ce0);}
+  .icon-indigo{background:linear-gradient(135deg,#6c8cff,#6c4ce0);}
+  .icon-teal{background:linear-gradient(135deg,#4fd1ff,#3ba9e0);}
+  .icon-cyan{background:linear-gradient(135deg,#4fe0d1,#2fb8c9);}
+  .icon-red{background:linear-gradient(135deg,#ff8a8a,#e5484d);}
+  .action-card h3{font-size:1rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+  .action-card p{font-size:.85rem;color:var(--ink-soft);margin-bottom:16px;}
+  .action-link{display:inline-flex;align-items:center;gap:6px;font-size:.83rem;font-weight:600;color:var(--purple-600);}
+  .action-link svg{transition:transform .25s;}
+  .action-card:hover .action-link svg{transform:translateX(3px);}
+  .badge-soon{font-size:.65rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint);background:rgba(138,131,168,.12);padding:3px 8px;border-radius:var(--radius-pill);}
+  .link-disabled{color:var(--ink-faint);cursor:default;}
+
+  .info-panel{
+    background:var(--white); border:1px solid rgba(108,76,224,.1); border-radius:var(--radius-md);
+    padding:26px 28px; box-shadow:0 4px 18px rgba(76,45,168,.06);
+  }
+  .info-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(108,76,224,.08);}
+  .info-row:last-child{border-bottom:none;padding-bottom:0;}
+  .info-row:first-child{padding-top:0;}
+  .info-label{font-size:.82rem;color:var(--ink-faint);font-weight:500;}
+  .info-value{font-size:.92rem;font-weight:600;color:var(--ink);}
+
+  @media (max-width:800px){
+    .action-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .topbar{padding:16px 18px;}
+    .user-chip-name{display:none;}
+    .page-shell{padding:28px 18px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" aria-hidden="true">
+  <div class="blur-circle c-purple"></div>
+  <div class="blur-circle c-blue"></div>
+</div>
+
+<header class="topbar">
+  <a href="{{ url_for('home') }}" class="logo">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#fff"/>
+      </svg>
+    </span>
+    SmartApply
+  </a>
+  <div class="topbar-right">
+    <div class="user-chip">
+      <span class="user-avatar" aria-hidden="true">{{ full_name[0]|upper if full_name else "U" }}</span>
+      <span class="user-chip-name">{{ full_name }}</span>
+    </div>
+    <a href="{{ url_for('logout') }}" class="btn-logout">
+      Logout
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</header>
+
+<main class="page-shell">
+
+  <section class="hero-card fade-up">
+    <p class="hero-eyebrow">Dashboard</p>
+    <h1 class="hero-title">Welcome back, {{ full_name.split(' ')[0] if full_name else 'there' }} 👋</h1>
+    <p class="hero-sub">You're logged in and ready to keep applying smarter. Here's where things stand today.</p>
+
+    <div class="hero-progress">
+      <div class="progress-track" role="progressbar" aria-valuenow="{{ profile_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Profile completion">
+        <div class="progress-fill" style="width: {{ profile_completion }}%;"></div>
+      </div>
+      <span class="progress-label">Profile {{ profile_completion }}% complete</span>
+    </div>
+  </section>
+
+  <h2 class="section-heading fade-up delay-1">What would you like to do?</h2>
+  <div class="action-grid">
+
+    <div class="action-card fade-up delay-1">
+      <span class="action-icon icon-orange" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><path d="M4 6.5c0-1.1.9-2 2-2h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-11Z" stroke-width="1.6"/><path d="M8 10.5h8M8 14.5h5" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+      <h3>One-Time Profile</h3>
+      <p>Fill your details once — SmartApply reuses them across every application, every time.</p>
+      <a href="{{ url_for('profile') }}" class="action-link">{{ "Edit profile" if has_profile else "Create profile" }}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <div class="action-card fade-up delay-2">
+      <span class="action-icon icon-purple" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </span>
+      <h3>Resume Manager</h3>
+      <p>Store multiple resumes and let SmartApply pick the right one for each opportunity.</p>
+      <a href="{{ url_for('resume_manager') }}" class="action-link">Manage resumes
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <div class="action-card fade-up delay-3">
+      <span class="action-icon icon-indigo" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><rect x="4" y="7" width="16" height="13" rx="2" stroke-width="1.6"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M4 12h16" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+      <h3>AI Auto Apply</h3>
+      <p>Our AI fills out application forms across portals automatically, accurately, and fast.</p>
+      <a href="{{ url_for('auto_apply') }}" class="action-link">Get started
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <a href="{{ url_for('tracker.list_applications') }}" class="action-card fade-up delay-1" style="display:block;">
+      <span class="action-icon icon-teal" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><path d="M4 19V10M12 19V5M20 19v-6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <h3>Application Tracker</h3>
+      <p>See every application's status in one place — applied, viewed, interviewing, or closed.</p>
+      <span class="action-link">Open tracker
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+
+    <a href="{{ url_for('job_search.job_search') }}" class="action-card fade-up delay-2" style="display:block;">
+      <span class="action-icon icon-cyan" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><circle cx="11" cy="11" r="6.5" stroke-width="1.8"/><path d="M20 20l-4.3-4.3" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      <h3>Smart Job Search</h3>
+      <p>Personalized job matches ranked by fit, so you spend time on roles worth applying to.</p>
+      <span class="action-link">Search jobs
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+
+    <a href="{{ url_for('security_info') }}" class="action-card fade-up delay-3" style="display:block;">
+      <span class="action-icon icon-red" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white"><rect x="5" y="10.5" width="14" height="9.5" rx="2" stroke-width="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+      <h3>Secure Data</h3>
+      <p>Your profile and documents are encrypted end-to-end and never shared without consent.</p>
+      <span class="action-link">View security
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </a>
+
+  </div>
+
+  <h2 class="section-heading fade-up delay-1">Account</h2>
+  <div class="info-panel fade-up delay-1">
+    <div class="info-row">
+      <span class="info-label">Full name</span>
+      <span class="info-value">{{ full_name }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Email</span>
+      <span class="info-value">{{ email }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Profile completion</span>
+      <span class="info-value">{{ profile_completion }}%</span>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

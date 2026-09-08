@@ -1,0 +1,157 @@
+/* =========================================================
+   SmartApply — dashboard.css
+   Reuses tokens from home.css (colors, radii, shadows, fonts).
+   ========================================================= */
+
+.dash-page {
+  padding: 48px 32px 80px;
+}
+
+.dash-flash {
+  margin-bottom: 24px;
+}
+
+.dash-flash .flash-message {
+  background: rgba(108, 76, 224, 0.1);
+  color: var(--purple-700);
+  border: 1px solid rgba(108, 76, 224, 0.18);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dash-flash .flash-message.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dash-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.dash-welcome-title {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 10px 0 8px;
+}
+
+.dash-welcome-sub {
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+.dash-avatar-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.dash-panel-wide {
+  grid-column: span 3;
+}
+
+.dash-panel {
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.dash-panel:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-md);
+}
+
+.dash-panel h3 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+
+.dash-panel-icon {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+}
+
+.dash-panel-note {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.dash-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.dash-panel-head h3 {
+  margin: 0;
+}
+
+.dash-stat-card .dash-stat-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--purple-600);
+  margin-bottom: 8px;
+}
+
+.dash-panel .btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+@media (max-width: 900px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dash-panel-wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .dash-page {
+    padding: 32px 18px 60px;
+  }
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-panel-wide {
+    grid-column: span 1;
+  }
+  .dash-welcome {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

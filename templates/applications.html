@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Application Tracker — SmartApply</title>
+<style>
+  :root {
+    --purple: #6C5CE7;
+    --purple-dark: #4C3FC9;
+    --bg: #F4F2FC;
+    --card-bg: #FFFFFF;
+    --text: #1F1F2E;
+    --text-muted: #6B6B7B;
+    --border: #E6E4F2;
+    --applied: #6C5CE7;
+    --viewed: #0F6E56;
+    --interviewing: #854F0B;
+    --closed: #888780;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    color: var(--text);
+  }
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  p.subtitle {
+    color: var(--text-muted);
+    margin-top: 0;
+    margin-bottom: 28px;
+  }
+  .summary-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .summary-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 18px 22px;
+    flex: 1;
+    min-width: 130px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .summary-card .count { font-size: 24px; font-weight: 700; }
+  .summary-card .label { font-size: 13px; color: var(--text-muted); text-transform: capitalize; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .card h2 { font-size: 18px; margin-top: 0; }
+
+  form.add-form { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  form.add-form .field { display: flex; flex-direction: column; gap: 6px; }
+  form.add-form label { font-size: 13px; color: var(--text-muted); }
+  form.add-form input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    min-width: 160px;
+  }
+  form.add-form button {
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  form.add-form button:hover { background: var(--purple-dark); }
+
+  .filters { margin-bottom: 16px; }
+  .filters a {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    margin-right: 8px;
+  }
+  .filters a.active {
+    background: var(--purple);
+    color: white;
+    border-color: var(--purple);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; color: var(--text-muted); padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .job-title { font-weight: 600; }
+  .company { color: var(--text-muted); font-size: 13px; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+  .status-applied { background: #EEEDFE; color: var(--applied); }
+  .status-viewed { background: #E1F5EE; color: var(--viewed); }
+  .status-interviewing { background: #FAEEDA; color: var(--interviewing); }
+  .status-closed { background: #F1EFE8; color: var(--closed); }
+
+  select.status-select {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #A32D2D;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .empty-state { text-align: center; padding: 40px 0; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Application Tracker</h1>
+  <p class="subtitle">See every application's status in one place — applied, viewed, interviewing, or closed.</p>
+
+  <div class="summary-row">
+    {% for s in statuses %}
+      <div class="summary-card">
+        <div class="count">{{ counts[s] }}</div>
+        <div class="label">{{ s }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2>Add an application</h2>
+    <form class="add-form" method="POST" action="{{ url_for('tracker.add_application') }}">
+      <div class="field">
+        <label>Job title</label>
+        <input type="text" name="job_title" placeholder="e.g. Frontend Engineer" required>
+      </div>
+      <div class="field">
+        <label>Company</label>
+        <input type="text" name="company" placeholder="e.g. Acme Corp" required>
+      </div>
+      <div class="field">
+        <label>Applied date</label>
+        <input type="date" name="applied_date" value="{{ today }}">
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" name="notes" placeholder="Referral, portal used, etc.">
+      </div>
+      <button type="submit">Add</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <a href="{{ url_for('tracker.list_applications') }}" class="{{ 'active' if active_filter == 'all' else '' }}">All</a>
+      {% for s in statuses %}
+        <a href="{{ url_for('tracker.list_applications', status=s) }}" class="{{ 'active' if active_filter == s else '' }}">{{ s|capitalize }}</a>
+      {% endfor %}
+    </div>
+
+    {% if applications %}
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Applied</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td>
+            <div class="job-title">{{ app.job_title }}</div>
+            <div class="company">{{ app.company }}</div>
+          </td>
+          <td>{{ app.applied_date }}</td>
+          <td>
+            <span class="status-badge status-{{ app.status }}">{{ app.status }}</span>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('tracker.update_status', app_id=app.id) }}" style="display:inline;">
+              <select class="status-select" name="status" onchange="this.form.submit()">
+                {% for s in statuses %}
+                  <option value="{{ s }}" {{ 'selected' if s == app.status else '' }}>{{ s|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            <form method="POST" action="{{ url_for('tracker.delete_application', app_id=app.id) }}" style="display:inline;">
+              <button type="submit" class="delete-btn" onclick="return confirm('Remove this application?')">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-state">No applications yet — add your first one above.</div>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

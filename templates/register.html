@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Account — SmartApply</title>
+<meta name="theme-color" content="#6C4CE0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --purple-700:#4d33b0; --purple-600:#6c4ce0; --purple-500:#8b6ef5; --purple-100:#ece6ff;
+    --blue-400:#4fd1ff; --white:#fff; --ink:#1a1530; --ink-soft:#59527a; --ink-faint:#8a83a8;
+    --danger:#e5484d; --radius-sm:10px; --radius-md:18px; --radius-lg:28px; --radius-pill:999px;
+    --shadow-md:0 12px 32px rgba(76,45,168,.14); --shadow-lg:0 24px 60px rgba(76,45,168,.2);
+    --shadow-glow:0 0 0 1px rgba(255,255,255,.6), 0 20px 50px rgba(108,76,224,.25);
+    --gradient-brand:linear-gradient(135deg,var(--purple-600) 0%,var(--blue-400) 100%);
+    --gradient-aside:linear-gradient(155deg,var(--purple-700) 0%,var(--purple-600) 45%,#4a6de0 100%);
+    --font-display:"Sora",sans-serif; --font-body:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-body); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 10%, #efe9ff 0%, transparent 45%),
+      radial-gradient(circle at 85% 0%, #e2f7ff 0%, transparent 40%),
+      linear-gradient(180deg,#fbfaff 0%,#f5f3ff 100%);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;
+  }
+  a{text-decoration:none;color:inherit;}
+  ul{list-style:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  h1,h2{font-family:var(--font-display);color:var(--ink);line-height:1.15;font-weight:700;}
+  :focus-visible{outline:2px solid var(--purple-600);outline-offset:3px;border-radius:4px;}
+
+  .bg-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
+  .blur-circle{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;animation:drift 18s ease-in-out infinite alternate;}
+  .c-purple{width:480px;height:480px;background:var(--purple-500);top:-140px;left:-120px;}
+  .c-blue{width:420px;height:420px;background:var(--blue-400);bottom:-160px;right:-140px;animation-delay:3s;}
+  .c-small{width:260px;height:260px;background:var(--purple-100);top:40%;left:45%;animation-delay:6s;}
+  @keyframes drift{from{transform:translate(0,0) scale(1);}to{transform:translate(30px,40px) scale(1.08);}}
+
+  .fade-up{opacity:0;transform:translateY(24px);animation:fadeUp .7s ease forwards;}
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+
+  .auth-shell{
+    width:100%; max-width:1000px; margin:0 auto;
+    display:grid; grid-template-columns:0.85fr 1.15fr;
+    background:rgba(255,255,255,.82); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    border:1px solid rgba(255,255,255,.55); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-glow); overflow:hidden;
+  }
+
+  .auth-aside{
+    position:relative; background:var(--gradient-aside); color:var(--white);
+    padding:44px 40px; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;
+  }
+  .auth-aside::before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.08);top:-100px;right:-100px;}
+  .auth-aside::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);bottom:-80px;left:-60px;}
+  .auth-logo{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:1.2rem;color:var(--white);position:relative;z-index:1;width:fit-content;}
+  .auth-aside-content{position:relative;z-index:1;}
+  .auth-heading{font-size:clamp(1.6rem,3vw,2.1rem);margin-bottom:12px;}
+  .auth-subtitle{color:rgba(255,255,255,.85);font-size:1rem;margin-bottom:30px;max-width:300px;}
+  .auth-feature-list{display:flex;flex-direction:column;gap:15px;}
+  .auth-feature-list li{display:flex;align-items:center;gap:12px;font-weight:500;font-size:.94rem;}
+  .check-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.16);font-size:.75rem;flex-shrink:0;}
+  .auth-aside-footer{position:relative;z-index:1;font-size:.76rem;color:rgba(255,255,255,.6);}
+
+  .auth-card-wrap{
+    display:flex; align-items:center; justify-content:center;
+    padding:44px 40px; background:rgba(255,255,255,.35);
+  }
+  .auth-card{width:100%; max-width:420px; margin:0 auto;}
+  .auth-card-title{font-size:1.5rem;margin-bottom:6px;}
+  .auth-card-sub{color:var(--ink-soft);font-size:.92rem;margin-bottom:26px;}
+
+  .flash-stack{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+  .flash-message{font-size:.85rem;font-weight:500;padding:12px 14px;border-radius:var(--radius-sm);background:rgba(108,76,224,.1);color:var(--purple-700);border:1px solid rgba(108,76,224,.18);animation:fadeUp .4s ease;}
+  .flash-message.is-error{background:rgba(229,72,77,.08);color:#c22a3a;border-color:rgba(229,72,77,.22);}
+
+  .auth-form{display:flex;flex-direction:column;gap:16px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;width:100%;}
+  .form-group label{font-size:.85rem;font-weight:600;color:var(--ink);}
+  .input-wrap{position:relative;display:flex;align-items:center;width:100%;}
+  .input-icon{position:absolute;left:14px;display:flex;color:var(--ink-faint);pointer-events:none;}
+  .input-wrap input{
+    width:100%; font-family:var(--font-body); font-size:.95rem; color:var(--ink);
+    background:rgba(255,255,255,.7); border:1.5px solid rgba(108,76,224,.15);
+    border-radius:var(--radius-sm); padding:13px 44px; transition:border-color .3s,box-shadow .3s,background .3s;
+  }
+  .input-wrap input::placeholder{color:var(--ink-faint);}
+  .input-wrap input:focus{outline:none;border-color:var(--purple-600);background:var(--white);box-shadow:0 0 0 4px rgba(108,76,224,.12);}
+  .toggle-eye{position:absolute;right:12px;display:flex;align-items:center;justify-content:center;color:var(--ink-faint);padding:4px;border-radius:6px;transition:color .3s;}
+  .toggle-eye:hover{color:var(--purple-600);}
+
+  .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-display);font-weight:600;font-size:.95rem;padding:13px 22px;border-radius:var(--radius-pill);transition:transform .3s,box-shadow .3s,background .3s,color .3s;}
+  .btn-block{width:100%;}
+  .btn-primary{background:var(--gradient-brand);color:var(--white);box-shadow:var(--shadow-md);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .btn-primary:disabled{cursor:not-allowed;opacity:.85;transform:none!important;}
+  .btn-outline{background:transparent;color:var(--purple-600);border:1.5px solid rgba(108,76,224,.35);}
+  .btn-outline:hover{background:var(--purple-100);transform:translateY(-2px);}
+  .btn-sm{padding:8px 16px;font-size:.85rem;}
+  .btn-social{background:var(--white);color:var(--ink);border:1.5px solid rgba(108,76,224,.15);box-shadow:0 2px 8px rgba(76,45,168,.08);}
+  .btn-social:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(108,76,224,.3);}
+  .btn-social:disabled,.btn-social.is-disabled{cursor:not-allowed;opacity:.6;}
+  .btn-social:disabled:hover{transform:none;box-shadow:0 2px 8px rgba(76,45,168,.08);}
+
+  .btn-label,.btn-spinner{display:inline-flex;align-items:center;gap:8px;}
+  .btn-spinner{display:none;}
+  .btn-primary.is-loading .btn-label{visibility:hidden;}
+  .btn-primary.is-loading .btn-spinner{display:inline-flex;position:absolute;inset:0;align-items:center;justify-content:center;}
+  .spinner-ring{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.4);border-top-color:var(--white);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none;}
+  .btn-social .ripple,.btn-outline .ripple{background:rgba(108,76,224,.18);}
+  @keyframes rippleAnim{to{transform:scale(2.4);opacity:0;}}
+
+  .divider{display:flex;align-items:center;gap:12px;color:var(--ink-faint);font-size:.78rem;font-weight:600;letter-spacing:.05em;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(108,76,224,.15);}
+
+  .auth-switch{margin-top:24px;text-align:center;font-size:.88rem;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:12px;}
+
+  @media (max-width:900px){
+    .auth-shell{grid-template-columns:1fr;max-width:460px;}
+    .auth-aside-footer{display:none;}
+    .auth-feature-list{display:none;}
+    .auth-aside{padding:32px 28px;}
+    .auth-card-wrap{padding:32px 28px;}
+    .auth-card{max-width:100%;}
+  }
+  @media (max-width:480px){
+    body{padding:16px;}
+    .auth-shell{border-radius:var(--radius-md);}
+    .auth-aside,.auth-card-wrap{padding:26px 22px;}
+    .form-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" aria-hidden="true">
+  <div class="blur-circle c-purple"></div>
+  <div class="blur-circle c-blue"></div>
+  <div class="blur-circle c-small"></div>
+</div>
+
+<div class="auth-shell fade-up">
+
+  <section class="auth-aside" aria-label="SmartApply introduction">
+    <a href="{{ url_for('index') }}" class="auth-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#fff"/>
+      </svg>
+      SmartApply
+    </a>
+    <div class="auth-aside-content">
+      <h1 class="auth-heading">Start Applying Smarter <span aria-hidden="true">🚀</span></h1>
+      <p class="auth-subtitle">Create your free account in under a minute.</p>
+      <ul class="auth-feature-list">
+        <li><span class="check-icon" aria-hidden="true">✔</span> Auto Apply Jobs</li>
+        <li><span class="check-icon" aria-hidden="true">✔</span> Resume Manager</li>
+        <li><span class="check-icon" aria-hidden="true">✔</span> Application Tracker</li>
+        <li><span class="check-icon" aria-hidden="true">✔</span> Secure Login</li>
+      </ul>
+    </div>
+    <div class="auth-aside-footer">
+      <p>&copy; <span id="year"></span> SmartApply. All rights reserved.</p>
+    </div>
+  </section>
+
+  <section class="auth-card-wrap">
+    <div class="auth-card">
+      <h2 class="auth-card-title">Create your account</h2>
+      <p class="auth-card-sub">Join SmartApply and start applying smarter today.</p>
+
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="flash-stack">
+        {% for message in messages %}
+        <div class="flash-message{% if 'already exists' in message or 'match' in message or 'fill in' in message %} is-error{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      <form class="auth-form" action="{{ url_for('register') }}" method="POST" novalidate>
+
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 19.5c1.6-3.4 4.4-5 7.5-5s5.9 1.6 7.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </span>
+            <input type="text" id="fullName" name="full_name" placeholder="Jane Doe" autocomplete="name" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6.5C3 5.67 3.67 5 4.5 5h15c.83 0 1.5.67 1.5 1.5v11c0 .83-.67 1.5-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 6.5 12 13l8-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <input type="email" id="regEmail" name="email" placeholder="you@example.com" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="mobileNumber">Mobile Number</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="7" y="2.5" width="10" height="19" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </span>
+            <input type="tel" id="mobileNumber" name="mobile_number" placeholder="e.g. 9876543210" autocomplete="tel" required />
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="9.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </span>
+              <input type="password" id="regPassword" name="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required />
+              <button type="button" class="toggle-eye" data-target="regPassword" aria-label="Show password" aria-pressed="false">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+                <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M6.7 6.7C4.5 8.1 3 12 3 12s3.5 7 10 7c1.8 0 3.3-.5 4.6-1.3M9.9 4.2A10.6 10.6 0 0 1 12 4c6.5 0 10 7 10 7a15.2 15.2 0 0 1-2.9 3.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="9.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </span>
+              <input type="password" id="confirmPassword" name="confirm" placeholder="Re-enter password" autocomplete="new-password" minlength="8" required />
+              <button type="button" class="toggle-eye" data-target="confirmPassword" aria-label="Show password" aria-pressed="false">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+                <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" hidden><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.24 4.24M6.7 6.7C4.5 8.1 3 12 3 12s3.5 7 10 7c1.8 0 3.3-.5 4.6-1.3M9.9 4.2A10.6 10.6 0 0 1 12 4c6.5 0 10 7 10 7a15.2 15.2 0 0 1-2.9 3.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-ripple">
+          <span class="btn-label">
+            Create Account
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="btn-spinner"><span class="spinner-ring" aria-hidden="true"></span></span>
+        </button>
+
+        <div class="divider"><span>OR</span></div>
+
+        {% if google_enabled %}
+        <a href="{{ url_for('google_login') }}" class="btn btn-social btn-block">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.58-5.17 3.58-8.81Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.92l-3.87-3c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.3v3.1A12 12 0 0 0 12 24Z"/>
+            <path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.3A12 12 0 0 0 0 12c0 1.94.46 3.77 1.3 5.39l3.99-3.1Z"/>
+            <path fill="#EA4335" d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.3 6.61l3.99 3.1C6.23 6.88 8.88 4.77 12 4.77Z"/>
+          </svg>
+          Continue with Google
+        </a>
+        {% else %}
+        <button type="button" class="btn btn-social btn-block is-disabled" disabled title="Google Login Coming Soon">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.58-5.17 3.58-8.81Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.92l-3.87-3c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.3v3.1A12 12 0 0 0 12 24Z"/>
+            <path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.3A12 12 0 0 0 0 12c0 1.94.46 3.77 1.3 5.39l3.99-3.1Z"/>
+            <path fill="#EA4335" d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.3 6.61l3.99 3.1C6.23 6.88 8.88 4.77 12 4.77Z"/>
+          </svg>
+          Google Login Coming Soon
+        </button>
+        {% endif %}
+      </form>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm">Log In</a>
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  document.querySelectorAll('.toggle-eye').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.getAttribute('data-target'));
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', String(isHidden));
+      btn.querySelector('.eye-open').hidden = isHidden;
+      btn.querySelector('.eye-closed').hidden = !isHidden;
+    });
+  });
+
+  document.querySelectorAll('.btn-ripple').forEach((btn) => {
+    btn.addEventListener('click', function (e) {
+      const circle = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      circle.style.width = circle.style.height = `${size}px`;
+      circle.style.left = `${e.clientX - rect.left - size / 2}px`;
+      circle.style.top = `${e.clientY - rect.top - size / 2}px`;
+      circle.classList.add('ripple');
+      this.appendChild(circle);
+      setTimeout(() => circle.remove(), 600);
+    });
+  });
+
+  document.querySelectorAll('form.auth-form').forEach((form) => {
+    form.addEventListener('submit', () => {
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.classList.add('is-loading'); btn.disabled = true; }
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}SmartApply{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app_shell.css') }}" />
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-brand">
+        <span class="logo-mark">SA</span>
+        <span class="brand-text">SmartApply</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('home') }}" class="nav-item {{ 'is-active' if active_page == 'home' else '' }}">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Home Dashboard</span>
+        </a>
+        <a href="{{ url_for('profile.create_profile') }}" class="nav-item {{ 'is-active' if active_page == 'create_profile' else '' }}">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Create Profile</span>
+        </a>
+        <a href="{{ url_for('resume.resume_manager') }}" class="nav-item {{ 'is-active' if active_page == 'resume_manager' else '' }}">
+          <span class="nav-icon">📄</span>
+          <span class="nav-label">Resume Manager</span>
+        </a>
+        <a href="{{ url_for('autoapply.ai_auto_apply') }}" class="nav-item {{ 'is-active' if active_page == 'ai_auto_apply' else '' }}">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">AI Auto Apply</span>
+        </a>
+        <a href="{{ url_for('jobsearch.job_search') }}" class="nav-item {{ 'is-active' if active_page == 'job_search' else '' }}">
+          <span class="nav-icon">🔍</span>
+          <span class="nav-label">Smart Job Search</span>
+        </a>
+        <a href="{{ url_for('tracker.application_tracker') }}" class="nav-item {{ 'is-active' if active_page == 'application_tracker' else '' }}">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Application Tracker</span>
+        </a>
+        <a href="{{ url_for('saved_jobs.saved_jobs') }}" class="nav-item {{ 'is-active' if active_page == 'saved_jobs' else '' }}">
+          <span class="nav-icon">💼</span>
+          <span class="nav-label">Saved Jobs</span>
+        </a>
+        <a href="{{ url_for('notifications.notifications') }}" class="nav-item {{ 'is-active' if active_page == 'notifications' else '' }}">
+          <span class="nav-icon">🔔</span>
+          <span class="nav-label">Notifications</span>
+        </a>
+        <a href="{{ url_for('analytics.analytics') }}" class="nav-item {{ 'is-active' if active_page == 'analytics' else '' }}">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Analytics</span>
+        </a>
+        <a href="{{ url_for('settings.settings') }}" class="nav-item {{ 'is-active' if active_page == 'settings' else '' }}">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle">
+          <span class="nav-icon">↔</span>
+          <span class="sidebar-footer-text">Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="navbar">
+        <button type="button" class="navbar-menu-btn" id="navbarMenuBtn">☰</button>
+
+        <div class="navbar-search">
+          <span class="navbar-search-icon">🔍</span>
+          <input type="text" placeholder="Search jobs, companies, applications..." />
+        </div>
+
+        <div class="navbar-actions">
+          <a href="{{ url_for('notifications.notifications') }}" class="icon-btn" title="Notifications">
+            🔔
+            <span class="badge-dot"></span>
+          </a>
+
+          <div class="user-menu" id="userMenu">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger">
+              <span class="user-avatar">{{ (user['full_name'][0] if user and user['full_name'] else 'U') | upper }}</span>
+              <span class="user-menu-name">{{ user['full_name'] if user else 'Guest' }}</span>
+            </button>
+            <div class="user-menu-dropdown">
+              <a href="{{ url_for('settings.settings') }}">⚙️ Settings</a>
+              <a href="{{ url_for('profile.create_profile') }}">👤 Edit Profile</a>
+              <div class="divider-line"></div>
+              <a href="{{ url_for('logout') }}" class="logout-link">🚪 Logout</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="app-flash-stack">
+              {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app_shell.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

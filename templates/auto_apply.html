@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Auto Apply — SmartApply</title>
+<meta name="theme-color" content="#6C63FF" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --primary:#6C63FF; --secondary:#8B5CF6; --accent:#4F46E5; --bg:#F6F8FF; --card:#FFFFFF;
+    --text:#111827; --text-soft:#5B6178; --text-faint:#9AA0B4; --border:#E5E7EB;
+    --danger:#E5484D; --success:#16A34A;
+    --gradient-brand:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+    --gradient-soft:linear-gradient(135deg,rgba(108,99,255,.12) 0%,rgba(79,70,229,.08) 100%);
+    --radius-card:24px; --radius-field:16px; --radius-pill:999px;
+    --shadow-card:0 20px 50px -12px rgba(76,45,168,.14);
+    --shadow-btn:0 14px 34px -8px rgba(108,99,255,.55);
+    --font:"Inter",sans-serif;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--font);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;background:var(--bg);min-height:100vh;position:relative;overflow-x:hidden;}
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  h1,h2,h3{font-family:var(--font);color:var(--text);font-weight:700;}
+  :focus-visible{outline:2px solid var(--primary);outline-offset:3px;border-radius:4px;}
+
+  .bg-mesh{position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(ellipse 900px 600px at 8% -5%, rgba(108,99,255,.14), transparent 60%),
+    radial-gradient(ellipse 800px 700px at 100% 10%, rgba(139,92,246,.12), transparent 55%),
+    radial-gradient(ellipse 700px 600px at 20% 100%, rgba(79,70,229,.09), transparent 55%),
+    var(--bg);}
+  .blob{position:fixed;border-radius:50%;filter:blur(80px);z-index:-1;opacity:.5;animation:float 22s ease-in-out infinite;}
+  .blob-1{width:420px;height:420px;background:linear-gradient(135deg,var(--primary),var(--secondary));top:-120px;right:-100px;}
+  .blob-2{width:360px;height:360px;background:linear-gradient(135deg,var(--secondary),var(--accent));bottom:-140px;left:-120px;animation-delay:-8s;}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-24px,30px) scale(1.06);}}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px clamp(18px,4vw,40px);position:sticky;top:0;z-index:40;background:rgba(246,248,255,.75);backdrop-filter:blur(16px);border-bottom:1px solid rgba(229,231,235,.7);}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem;letter-spacing:-.01em;}
+  .logo-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--gradient-brand);color:#fff;}
+  .btn-back{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;font-weight:600;color:var(--primary);padding:9px 18px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,99,255,.25);background:#fff;transition:background .2s,transform .2s;}
+  .btn-back:hover{background:var(--gradient-soft);transform:translateY(-1px);}
+
+  .page-shell{max-width:900px;margin:0 auto;padding:28px clamp(16px,3vw,36px) 100px;}
+  .page-head{margin-bottom:22px;}
+  .page-head h1{font-size:clamp(1.5rem,2.6vw,1.9rem);display:flex;align-items:center;gap:12px;letter-spacing:-.02em;}
+  .page-head p{color:var(--text-soft);font-size:.9rem;margin-top:6px;}
+
+  .flash-stack{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+  .flash-message{font-size:.85rem;font-weight:500;padding:13px 16px;border-radius:14px;background:rgba(229,72,77,.08);color:#b3231f;border:1px solid rgba(229,72,77,.22);display:flex;align-items:center;gap:8px;}
+
+  .setup-notice{font-size:.85rem;font-weight:500;padding:14px 18px;border-radius:14px;background:rgba(255,177,72,.1);color:#92620a;border:1px solid rgba(255,177,72,.3);margin-bottom:20px;}
+  .setup-notice code{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:6px;font-size:.82rem;}
+
+  .s-card{background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border:1px solid rgba(229,231,235,.9);border-radius:var(--radius-card);padding:32px clamp(18px,3vw,36px);margin-bottom:22px;box-shadow:var(--shadow-card);}
+
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-bottom:18px;}
+  .field-group{display:flex;flex-direction:column;gap:7px;}
+  .field-group label{font-size:.82rem;font-weight:600;color:var(--text);}
+  .field-group input[type=text], .field-group textarea{
+    width:100%;font-family:var(--font);font-size:.9rem;color:var(--text);background:#fff;border:1.5px solid var(--border);
+    border-radius:var(--radius-field);padding:14px 16px;transition:border-color .25s,box-shadow .25s;
+  }
+  .field-group textarea{resize:vertical;min-height:180px;line-height:1.5;}
+  .field-group input:focus, .field-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(108,99,255,.14);}
+
+  .btn-generate{
+    display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:.92rem;color:#fff;
+    padding:15px 26px;border-radius:var(--radius-pill);background:var(--gradient-brand);box-shadow:var(--shadow-btn);
+    transition:transform .2s,box-shadow .2s;
+  }
+  .btn-generate:hover{transform:translateY(-2px);box-shadow:0 20px 44px -10px rgba(108,99,255,.7);}
+  .btn-generate svg{width:17px;height:17px;}
+
+  .result-card h2{font-size:1.1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .result-text{white-space:pre-wrap;font-size:.92rem;line-height:1.7;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:var(--radius-field);padding:22px;}
+  .result-actions{margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-copy{display:inline-flex;align-items:center;gap:7px;font-size:.84rem;font-weight:700;color:var(--primary);padding:11px 18px;border-radius:var(--radius-pill);border:1.5px solid rgba(108,99,255,.25);background:#fff;transition:background .2s;}
+  .btn-copy:hover{background:var(--gradient-soft);}
+  .btn-copy.copied{color:var(--success);border-color:rgba(22,163,74,.3);}
+</style>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true"></div>
+<div class="blob blob-1" aria-hidden="true"></div>
+<div class="blob blob-2" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="{{ url_for('dashboard') }}" class="logo">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg>
+    </span>
+    SmartApply
+  </a>
+  <a href="{{ url_for('dashboard') }}" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Dashboard
+  </a>
+</header>
+
+<div class="page-shell">
+
+  <div class="page-head">
+    <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M4 12h16"/></svg>
+      AI Auto Apply
+    </h1>
+    <p>Paste a job posting — SmartApply matches it against your profile and drafts a tailored cover letter, using the details from your One-Time Profile.</p>
+  </div>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="flash-stack">
+    {% for message in messages %}
+    <div class="flash-message">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% if not gemini_enabled %}
+  <div class="setup-notice">
+    Auto Apply needs a free Gemini API key to generate content. Add <code>GEMINI_API_KEY=...</code> to your <code>.env</code> file (get one at
+    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="text-decoration:underline;">aistudio.google.com/apikey</a>) and restart the server.
+  </div>
+  {% endif %}
+
+  <section class="s-card">
+    <form action="{{ url_for('auto_apply') }}" method="POST" novalidate>
+      <div class="field-grid">
+        <div class="field-group">
+          <label for="job_title">Job Title</label>
+          <input type="text" id="job_title" name="job_title" placeholder="e.g. Frontend Developer" value="{{ job_title }}">
+        </div>
+        <div class="field-group">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company" placeholder="e.g. Acme Corp" value="{{ company }}">
+        </div>
+      </div>
+      <div class="field-group" style="margin-bottom:22px;">
+        <label for="job_description">Job Description</label>
+        <textarea id="job_description" name="job_description" placeholder="Paste the full job description here...">{{ job_description }}</textarea>
+      </div>
+      <button type="submit" class="btn-generate">
+        Generate with AI
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </form>
+  </section>
+
+  {% if result %}
+  <section class="s-card result-card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/></svg>
+      Your Tailored Application
+    </h2>
+    <div class="result-text" id="resultText">{{ result }}</div>
+    <div class="result-actions">
+      <button type="button" class="btn-copy" id="copyResultBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span id="copyResultLabel">Copy to clipboard</span>
+      </button>
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+
+<script>
+  const copyBtn = document.getElementById('copyResultBtn');
+  const copyLabel = document.getElementById('copyResultLabel');
+  const resultText = document.getElementById('resultText');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(resultText.textContent).then(() => {
+        copyBtn.classList.add('copied');
+        copyLabel.textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyLabel.textContent = 'Copy to clipboard';
+        }, 2000);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
