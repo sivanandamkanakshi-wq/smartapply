@@ -7,9 +7,8 @@ services:
     name: smartapply
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && python -m flask db upgrade"
     startCommand: "gunicorn app:app"
-    releaseCommand: "python -m flask db upgrade"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
