@@ -590,7 +590,9 @@ app.register_blueprint(job_search_bp)
 @app.route("/")
 def index():
     conn = get_db()
-    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    total_users = conn.execute(
+    "SELECT COUNT(*) AS count FROM users"
+).fetchone()["count"]
     conn.close()
     return render_template("index.html", total_users=total_users)
 
