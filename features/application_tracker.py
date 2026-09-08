@@ -21,9 +21,9 @@ HOW TO WIRE THIS INTO YOUR EXISTING APP (matches your app.config["DATABASE_PATH"
    from the "Not available yet" text to: <a href="{{ url_for('tracker.list_applications') }}">
 """
 
-import sqlite3
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from core import get_db
 
 tracker_bp = Blueprint("tracker", __name__)
 
@@ -34,14 +34,14 @@ VALID_STATUSES = ["applied", "viewed", "interviewing", "closed"]
 
 
 def get_conn():
-    conn = sqlite3.connect(current_app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
-    return conn
+    return get_db()
 
 
 def init_tracker_db(app):
     """Call once at startup, right after your existing init_db()."""
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
+    if app.config.get("DATABASE_URL"):
+        return
+    conn = get_db(app.config)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS applications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

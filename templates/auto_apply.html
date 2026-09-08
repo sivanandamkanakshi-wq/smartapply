@@ -133,6 +133,7 @@
 
   <section class="s-card">
     <form action="{{ url_for('auto_apply') }}" method="POST" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="field-grid">
         <div class="field-group">
           <label for="job_title">Job Title</label>

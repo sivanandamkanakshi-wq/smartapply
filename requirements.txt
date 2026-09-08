@@ -1,4 +1,7 @@
 Flask
+Flask-Migrate
+Flask-SQLAlchemy
+psycopg[binary]
 requests
 python-dotenv
 authlib

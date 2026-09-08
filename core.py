@@ -18,14 +18,59 @@ from functools import wraps
 from flask import current_app, flash, redirect, session, url_for
 
 
-def get_db():
+class DatabaseConnection:
+    def __init__(self, connection, is_postgresql):
+        self._connection = connection
+        self._is_postgresql = is_postgresql
+
+    def execute(self, query, parameters=()):
+        if self._is_postgresql:
+            query = query.replace("?", "%s")
+        return self._connection.execute(query, parameters)
+
+    def commit(self):
+        return self._connection.commit()
+
+    def close(self):
+        return self._connection.close()
+
+
+def is_postgresql(config=None):
+    config = config or current_app.config
+    return bool(config.get("DATABASE_URL"))
+
+
+def get_db(config=None):
     """
-    Open a new sqlite3 connection using the path stored in app.config.
-    Callers are responsible for closing the connection.
+    Open a database connection using DATABASE_URL when configured, otherwise
+    use the local SQLite database path. Callers are responsible for closing it.
     """
-    conn = sqlite3.connect(current_app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
-    return conn
+    config = config or current_app.config
+    if is_postgresql(config):
+        try:
+            import psycopg
+            from psycopg.rows import dict_row
+        except ImportError as exc:
+            raise RuntimeError(
+                "PostgreSQL support requires the 'psycopg[binary]' package."
+            ) from exc
+        return DatabaseConnection(
+            psycopg.connect(config["DATABASE_URL"], row_factory=dict_row),
+            True,
+        )
+
+    connection = sqlite3.connect(config["DATABASE_PATH"])
+    connection.row_factory = sqlite3.Row
+    return DatabaseConnection(connection, False)
+
+
+def is_integrity_error(error):
+    if isinstance(error, sqlite3.IntegrityError):
+        return True
+    if is_postgresql():
+        import psycopg
+        return isinstance(error, psycopg.IntegrityError)
+    return False
 
 
 def get_current_user():

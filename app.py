@@ -1,15 +1,18 @@
 import json
+import hashlib
+import hmac
 import os
-import random
 import secrets
 import smtplib
 import sqlite3
 import sys
+import time
 from email.message import EmailMessage
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
 import requests
+from flask_migrate import Migrate
 
 load_dotenv()
 
@@ -22,19 +25,96 @@ from features.job_search import job_search_bp
 from werkzeug.utils import secure_filename
 from features.application_tracker import tracker_bp, init_tracker_db
 from features.encryption import encrypt_field, decrypt_field
+from core import get_db, is_integrity_error
+from models import db
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "").strip() or secrets.token_hex(32)
-app.config["DATABASE_PATH"] = os.path.join(BASE_DIR, "database", "SmartApply.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+database_path = os.getenv(
+    "DATABASE_PATH",
+    os.path.join(BASE_DIR, "database", "SmartApply.db"),
+).strip()
+sqlalchemy_database_url = DATABASE_URL
+if sqlalchemy_database_url.startswith("postgres://"):
+    sqlalchemy_database_url = "postgresql+psycopg://" + sqlalchemy_database_url[len("postgres://"):]
+elif sqlalchemy_database_url.startswith("postgresql://"):
+    sqlalchemy_database_url = "postgresql+psycopg://" + sqlalchemy_database_url[len("postgresql://"):]
+elif sqlalchemy_database_url.startswith("postgresql+psycopg2://"):
+    sqlalchemy_database_url = "postgresql+psycopg://" + sqlalchemy_database_url[len("postgresql+psycopg2://"):]
+app.config["DATABASE_URL"] = DATABASE_URL
+app.config["DATABASE_PATH"] = database_path
+app.config["SQLALCHEMY_DATABASE_URI"] = sqlalchemy_database_url or f"sqlite:///{database_path}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "static", "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB total per request
+app.config["MAX_UPLOAD_SIZE"] = 5 * 1024 * 1024  # 5 MB per uploaded file
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.getenv("SESSION_COOKIE_SECURE", "false").strip().lower() in {"1", "true", "yes", "on"}
 ALLOW_LOCAL_DB_RESET = os.getenv("ALLOW_LOCAL_DB_RESET", "false").strip().lower() in {"1", "true", "yes", "on"}
+db.init_app(app)
+migrate = Migrate(app, db)
 
 ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_DOC_EXT = {"pdf", "png", "jpg", "jpeg"}
+CORS_ALLOWED_ORIGINS = {
+    origin.strip().rstrip("/")
+    for origin in os.getenv("SMARTAPPLY_CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+}
+
+
+def get_positive_int_env(name, default):
+    try:
+        value = int(os.getenv(name, str(default)).strip())
+    except (TypeError, ValueError):
+        return default
+    return value if value > 0 else default
+
+
+OTP_EXPIRY_SECONDS = get_positive_int_env("OTP_EXPIRY_SECONDS", 600)
+OTP_MAX_ATTEMPTS = get_positive_int_env("OTP_MAX_ATTEMPTS", 5)
+OTP_REQUEST_COOLDOWN_SECONDS = get_positive_int_env("OTP_REQUEST_COOLDOWN_SECONDS", 60)
+
+
+def get_csrf_token():
+    token = session.get("csrf_token")
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session["csrf_token"] = token
+    return token
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {"csrf_token": get_csrf_token}
+
+
+@app.before_request
+def protect_browser_state_changes():
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
+        return None
+
+    # Bearer-token APIs authenticate independently from the browser session.
+    if request.path.startswith("/api/") and request.headers.get("Authorization", "").startswith("Bearer "):
+        return None
+
+    submitted_token = request.form.get("csrf_token") or request.headers.get("X-CSRFToken", "")
+    expected_token = session.get("csrf_token", "")
+    if not expected_token or not submitted_token or not hmac.compare_digest(submitted_token, expected_token):
+        abort(400, description="The CSRF token is missing or invalid.")
+
+
+def add_api_cors_headers(response):
+    origin = request.headers.get("Origin", "").strip().rstrip("/")
+    if origin and origin in CORS_ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+        response.headers["Access-Control-Max-Age"] = "600"
+        response.headers["Vary"] = "Origin"
+    return response
 
 # ---------------------------------------------------------------------------
 # Google OAuth (Authlib) — enables either for real Google OAuth when
@@ -126,8 +206,7 @@ if GOOGLE_ENABLED and GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 
 
 def get_or_create_google_demo_user():
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db(app.config)
     user = conn.execute("SELECT * FROM users WHERE email = ?", (GOOGLE_DEMO_EMAIL,)).fetchone()
 
     if not user:
@@ -145,8 +224,7 @@ def get_or_create_google_demo_user():
 
 
 def ensure_profile_exists(user_id, user=None):
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     existing = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
     if not existing:
         if user is None:
@@ -177,8 +255,10 @@ def ensure_profile_exists(user_id, user=None):
 
 
 def init_db():
+    if DATABASE_URL:
+        return
     os.makedirs(os.path.dirname(app.config["DATABASE_PATH"]), exist_ok=True)
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
+    conn = get_db(app.config)
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
@@ -292,7 +372,7 @@ def is_valid_indian_mobile_number(mobile_number):
 
 def send_sms_otp(mobile_number, otp_code):
     if os.getenv("OTP_DEMO_MODE", "false").strip().lower() in {"1", "true", "yes", "on"}:
-        print(f"[OTP DEMO] SMS OTP for {mobile_number}: {otp_code}")
+        print("[OTP DEMO] SMS delivery simulated")
         return True
 
     provider = os.getenv("SMS_PROVIDER", "msg91").strip().lower()
@@ -301,17 +381,17 @@ def send_sms_otp(mobile_number, otp_code):
         return send_email_otp(recipient, otp_code)
 
     if not mobile_number:
-        print("[OTP DEBUG] no mobile number provided")
+        print("[OTP DEBUG] SMS delivery skipped: no mobile number provided")
         return False
 
     if not is_valid_indian_mobile_number(mobile_number):
-        print(f"[OTP DEBUG] invalid Indian mobile number: {mobile_number}")
+        print("[OTP DEBUG] SMS delivery skipped: invalid mobile number")
         return False
 
     api_key = os.getenv("MSG91_API_KEY", "").strip()
     sender_id = os.getenv("MSG91_SENDER_ID", "").strip()
     if not api_key or not sender_id:
-        print("[OTP DEBUG] MSG91 credentials are not configured — cannot send real SMS")
+        print("[OTP DEBUG] MSG91 credentials are not configured")
         return False
 
     recipient = mobile_number
@@ -340,7 +420,7 @@ def send_sms_otp(mobile_number, otp_code):
 
 def send_email_otp(email_address, otp_code):
     if os.getenv("OTP_DEMO_MODE", "false").lower() == "true":
-        print(f"[OTP DEMO] Email OTP for {email_address}: {otp_code}")
+        print("[OTP DEMO] Email delivery simulated")
         return True
 
     smtp_host = os.getenv("SMTP_HOST")
@@ -350,7 +430,7 @@ def send_email_otp(email_address, otp_code):
     smtp_from = os.getenv("SMTP_FROM")
 
     if not all([smtp_host, smtp_port, smtp_username, smtp_password, smtp_from]):
-        print(f"[OTP DEBUG] email={email_address} otp={otp_code}")
+        print("[OTP DEBUG] SMTP credentials are not configured")
         return False
 
     msg = EmailMessage()
@@ -385,8 +465,26 @@ def send_otp_to_user(email, mobile_number, otp_code):
     return None, False
 
 
+def clear_otp_challenge():
+    for key in ("otp_digest", "otp_issued_at", "otp_attempts", "otp_email", "otp_mobile"):
+        session.pop(key, None)
+
+
+def hash_otp(otp_code):
+    return hashlib.sha256(otp_code.encode("utf-8")).hexdigest()
+
+
 def allowed_file(filename, allowed_ext):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_ext
+
+
+UPLOAD_CONTENT_RULES = {
+    "pdf": ({"application/pdf"}, lambda header: header.startswith(b"%PDF-")),
+    "png": ({"image/png"}, lambda header: header.startswith(b"\x89PNG\r\n\x1a\n")),
+    "jpg": ({"image/jpeg"}, lambda header: header.startswith(b"\xff\xd8\xff")),
+    "jpeg": ({"image/jpeg"}, lambda header: header.startswith(b"\xff\xd8\xff")),
+    "webp": ({"image/webp"}, lambda header: header[:4] == b"RIFF" and header[8:12] == b"WEBP"),
+}
 
 
 def save_upload(file_storage, user_id, field_name, allowed_ext):
@@ -397,12 +495,39 @@ def save_upload(file_storage, user_id, field_name, allowed_ext):
     if not allowed_file(file_storage.filename, allowed_ext):
         return None
 
-    user_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(user_id))
+    ext = file_storage.filename.rsplit(".", 1)[1].lower()
+    content_rule = UPLOAD_CONTENT_RULES.get(ext)
+    if not content_rule:
+        return None
+
+    expected_mimetypes, content_matches = content_rule
+    declared_mimetype = (file_storage.mimetype or "").lower()
+    if declared_mimetype and declared_mimetype not in expected_mimetypes and declared_mimetype != "application/octet-stream":
+        return None
+
+    stream = file_storage.stream
+    try:
+        stream.seek(0, os.SEEK_END)
+        file_size = stream.tell()
+        stream.seek(0)
+        header = stream.read(12)
+        stream.seek(0)
+    except (OSError, ValueError):
+        return None
+
+    if file_size <= 0 or file_size > app.config["MAX_UPLOAD_SIZE"] or not content_matches(header):
+        return None
+
+    upload_root = os.path.realpath(app.config["UPLOAD_FOLDER"])
+    user_folder = os.path.realpath(os.path.join(upload_root, str(user_id)))
+    if os.path.commonpath((upload_root, user_folder)) != upload_root:
+        return None
     os.makedirs(user_folder, exist_ok=True)
 
-    ext = file_storage.filename.rsplit(".", 1)[1].lower()
     safe_name = secure_filename(f"{field_name}.{ext}")
-    disk_path = os.path.join(user_folder, safe_name)
+    disk_path = os.path.realpath(os.path.join(user_folder, safe_name))
+    if os.path.commonpath((upload_root, disk_path)) != upload_root:
+        return None
     file_storage.save(disk_path)
 
     return f"uploads/{user_id}/{safe_name}"
@@ -464,7 +589,7 @@ app.register_blueprint(job_search_bp)
 
 @app.route("/")
 def index():
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
+    conn = get_db()
     total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
     conn.close()
     return render_template("index.html", total_users=total_users)
@@ -484,8 +609,7 @@ def dashboard():
         flash("Please log in to continue.")
         return redirect(url_for("login"))
 
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     user = conn.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
     profile = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (session["user_id"],)).fetchone()
     conn.close()
@@ -522,8 +646,7 @@ def profile():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
 
     existing = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
     user = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -792,8 +915,7 @@ def resume_manager():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
 
     existing = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
 
@@ -883,8 +1005,7 @@ def auto_apply():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     existing = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
     conn.close()
 
@@ -943,8 +1064,7 @@ def extension_setup():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
 
     if request.method == "POST":
         new_token = secrets.token_hex(24)
@@ -975,11 +1095,7 @@ def security_info():
 @app.route("/api/profile-data", methods=["GET", "OPTIONS"])
 def api_profile_data():
     if request.method == "OPTIONS":
-        resp = app.response_class(status=204)
-        resp.headers["Access-Control-Allow-Origin"] = "*"
-        resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
-        return resp
+        return add_api_cors_headers(app.response_class(status=204))
     """Read-only API for the browser extension. Authenticated via a bearer
     token (not the session cookie), since this is called from content
     scripts running on third-party job sites."""
@@ -989,18 +1105,15 @@ def api_profile_data():
     if not token:
         response = {"error": "Missing API token"}
         resp = app.response_class(json.dumps(response), status=401, mimetype="application/json")
-        resp.headers["Access-Control-Allow-Origin"] = "*"
-        return resp
+        return add_api_cors_headers(resp)
 
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     user = conn.execute("SELECT id, full_name, email FROM users WHERE api_token = ?", (token,)).fetchone()
 
     if not user:
         conn.close()
         resp = app.response_class(json.dumps({"error": "Invalid API token"}), status=401, mimetype="application/json")
-        resp.headers["Access-Control-Allow-Origin"] = "*"
-        return resp
+        return add_api_cors_headers(resp)
 
     profile = conn.execute("SELECT * FROM profiles WHERE user_id = ?", (user["id"],)).fetchone()
     conn.close()
@@ -1046,18 +1159,17 @@ def api_profile_data():
         }
 
     resp = app.response_class(json.dumps(payload), status=200, mimetype="application/json")
-    resp.headers["Access-Control-Allow-Origin"] = "*"
-    return resp
+    return add_api_cors_headers(resp)
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     flash("You have been logged out.")
     return redirect(url_for("login"))
 
 
-@app.route("/reset-local-db")
+@app.route("/reset-local-db", methods=["POST"])
 def reset_local_db_route():
     if not ALLOW_LOCAL_DB_RESET:
         return "Not found", 404
@@ -1089,8 +1201,7 @@ def register():
 
         normalized_mobile = normalize_mobile_number(mobile_number)
 
-        conn = sqlite3.connect(app.config["DATABASE_PATH"])
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         existing_user = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
         existing_mobile = conn.execute(
             "SELECT id FROM users WHERE mobile_number = ?",
@@ -1113,14 +1224,14 @@ def register():
                 (full_name, email, generate_password_hash(password), normalized_mobile),
             )
             conn.commit()
-        except sqlite3.IntegrityError:
+        except Exception as exc:
+            if not is_integrity_error(exc):
+                conn.close()
+                print(f"[REGISTER ERROR] {exc}")
+                flash("Something went wrong while creating your account. Please try again.")
+                return render_template("register.html", google_enabled=GOOGLE_ENABLED)
             conn.close()
             flash("An account with this email or mobile number already exists.")
-            return render_template("register.html", google_enabled=GOOGLE_ENABLED)
-        except Exception as exc:
-            conn.close()
-            print(f"[REGISTER ERROR] {exc}")
-            flash("Something went wrong while creating your account. Please try again.")
             return render_template("register.html", google_enabled=GOOGLE_ENABLED)
         finally:
             conn.close()
@@ -1142,8 +1253,7 @@ def login():
             flash("Please enter both email and password.")
             return render_template("login.html", google_enabled=GOOGLE_ENABLED)
 
-        conn = sqlite3.connect(app.config["DATABASE_PATH"])
-        conn.row_factory = sqlite3.Row
+        conn = get_db()
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         conn.close()
 
@@ -1216,8 +1326,7 @@ def google_callback():
         flash("Google did not share an email address. Please try again.")
         return redirect(url_for("login"))
 
-    conn = sqlite3.connect(app.config["DATABASE_PATH"])
-    conn.row_factory = sqlite3.Row
+    conn = get_db()
     user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
     if not user:
@@ -1250,8 +1359,7 @@ def forgot_password():
                 flash("Please enter your email.")
                 return render_template("forgot_password.html", otp_sent=False, email="")
 
-            conn = sqlite3.connect(app.config["DATABASE_PATH"])
-            conn.row_factory = sqlite3.Row
+            conn = get_db()
             user = conn.execute("SELECT email, mobile_number FROM users WHERE email = ?", (email,)).fetchone()
             conn.close()
 
@@ -1259,12 +1367,35 @@ def forgot_password():
                 flash("No account was found with that email.")
                 return render_template("forgot_password.html", otp_sent=False, email=email)
 
-            otp_code = f"{random.randint(100000, 999999)}"
-            session["otp_code"] = otp_code
-            session["otp_email"] = user["email"]
-            session["otp_mobile"] = user["mobile_number"] or ""
+            now = time.time()
+            last_sent_at = session.get("otp_last_sent_at")
+            try:
+                cooldown_active = last_sent_at is not None and now - float(last_sent_at) < OTP_REQUEST_COOLDOWN_SECONDS
+            except (TypeError, ValueError):
+                cooldown_active = False
+
+            if cooldown_active:
+                flash("Please wait before requesting another OTP.")
+                return render_template(
+                    "forgot_password.html",
+                    otp_sent=bool(session.get("otp_digest")),
+                    email=user["email"],
+                    masked_mobile=mask_mobile_number(user["mobile_number"]),
+                )
+
+            otp_code = f"{secrets.randbelow(900000) + 100000}"
+            session["otp_last_sent_at"] = now
 
             channel, sent = send_otp_to_user(user["email"], user["mobile_number"], otp_code)
+
+            if sent:
+                session["otp_digest"] = hash_otp(otp_code)
+                session["otp_issued_at"] = now
+                session["otp_attempts"] = 0
+                session["otp_email"] = user["email"]
+                session["otp_mobile"] = user["mobile_number"] or ""
+            else:
+                clear_otp_challenge()
 
             if channel == "mobile":
                 flash("OTP sent successfully to your registered mobile number.")
@@ -1293,35 +1424,60 @@ def forgot_password():
                 masked_mobile=mask_mobile_number(session.get("otp_mobile", "")),
             )
 
-        if otp_code != session.get("otp_code"):
-            flash("Invalid OTP. Please try again.")
+        stored_digest = session.get("otp_digest", "")
+        try:
+            issued_at = float(session.get("otp_issued_at", 0))
+        except (TypeError, ValueError):
+            issued_at = 0
+
+        if not stored_digest or not issued_at or time.time() - issued_at > OTP_EXPIRY_SECONDS:
+            clear_otp_challenge()
+            flash("This OTP has expired. Please request a new one.")
+            return render_template("forgot_password.html", otp_sent=False, email=email)
+
+        try:
+            attempts = int(session.get("otp_attempts", 0))
+        except (TypeError, ValueError):
+            attempts = OTP_MAX_ATTEMPTS
+
+        if attempts >= OTP_MAX_ATTEMPTS:
+            clear_otp_challenge()
+            flash("Too many invalid OTP attempts. Please request a new one.")
+            return render_template("forgot_password.html", otp_sent=False, email=email)
+
+        session["otp_attempts"] = attempts + 1
+        submitted_digest = hash_otp(otp_code)
+        if len(otp_code) != 6 or not otp_code.isdigit() or not hmac.compare_digest(submitted_digest, stored_digest):
+            if attempts + 1 >= OTP_MAX_ATTEMPTS:
+                clear_otp_challenge()
+                flash("Too many invalid OTP attempts. Please request a new one.")
+                return render_template("forgot_password.html", otp_sent=False, email=email)
+            else:
+                flash("Invalid OTP. Please try again.")
             return render_template(
                 "forgot_password.html",
                 otp_sent=True,
                 email=session.get("otp_email", ""),
                 masked_mobile=mask_mobile_number(session.get("otp_mobile", "")),
             )
+
+        otp_email = session.get("otp_email", "")
+        clear_otp_challenge()
 
         if new_password != confirm_password:
             flash("Passwords do not match.")
-            return render_template(
-                "forgot_password.html",
-                otp_sent=True,
-                email=session.get("otp_email", ""),
-                masked_mobile=mask_mobile_number(session.get("otp_mobile", "")),
-            )
+            return render_template("forgot_password.html", otp_sent=False, email=otp_email)
 
-        conn = sqlite3.connect(app.config["DATABASE_PATH"])
+        conn = get_db()
         conn.execute(
             "UPDATE users SET password = ? WHERE email = ?",
-            (generate_password_hash(new_password), session.get("otp_email")),
+            (generate_password_hash(new_password), otp_email),
         )
         conn.commit()
         conn.close()
 
-        session.pop("otp_code", None)
-        session.pop("otp_email", None)
-        session.pop("otp_mobile", None)
+        clear_otp_challenge()
+        session.pop("otp_last_sent_at", None)
 
         flash("Password reset successful. Please log in with your new password.")
         return redirect(url_for("login"))

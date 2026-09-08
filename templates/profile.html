@@ -357,6 +357,7 @@
     {% endwith %}
 
     <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" novalidate id="profileForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
       <!-- ================= HERO CARD ================= -->
       <div class="hero-card">

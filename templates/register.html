@@ -189,6 +189,7 @@
       {% endwith %}
 
       <form class="auth-form" action="{{ url_for('register') }}" method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="form-group">
           <label for="fullName">Full Name</label>

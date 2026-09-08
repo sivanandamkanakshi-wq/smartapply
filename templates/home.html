@@ -151,10 +151,13 @@
       <span class="user-avatar" aria-hidden="true">{{ full_name[0]|upper if full_name else "U" }}</span>
       <span class="user-chip-name">{{ full_name }}</span>
     </div>
-    <a href="{{ url_for('logout') }}" class="btn-logout">
+    <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-logout">
       Logout
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
+      </button>
+    </form>
   </div>
 </header>
 

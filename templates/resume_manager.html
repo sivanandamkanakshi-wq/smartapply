@@ -315,6 +315,7 @@
   {% set resume_filename = data.documents.resume_path.split('/')[-1] if resume_uploaded else '' %}
 
   <form action="{{ url_for('resume_manager') }}" method="POST" enctype="multipart/form-data" novalidate id="resumeForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <section class="s-card" id="section-documents">
 

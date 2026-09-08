@@ -155,6 +155,7 @@
   <div class="card">
     <h2>Add an application</h2>
     <form class="add-form" method="POST" action="{{ url_for('tracker.add_application') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="field">
         <label>Job title</label>
         <input type="text" name="job_title" placeholder="e.g. Frontend Engineer" required>
@@ -206,6 +207,7 @@
           </td>
           <td>
             <form method="POST" action="{{ url_for('tracker.update_status', app_id=app.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <select class="status-select" name="status" onchange="this.form.submit()">
                 {% for s in statuses %}
                   <option value="{{ s }}" {{ 'selected' if s == app.status else '' }}>{{ s|capitalize }}</option>
@@ -213,6 +215,7 @@
               </select>
             </form>
             <form method="POST" action="{{ url_for('tracker.delete_application', app_id=app.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="delete-btn" onclick="return confirm('Remove this application?')">Remove</button>
             </form>
           </td>

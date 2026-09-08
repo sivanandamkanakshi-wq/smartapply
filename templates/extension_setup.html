@@ -97,6 +97,7 @@
       </button>
     </div>
     <form action="{{ url_for('extension_setup') }}" method="POST" onsubmit="return confirm('This will invalidate your current token — you\'ll need to update the extension. Continue?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn-regen">Regenerate token</button>
     </form>
   </section>
